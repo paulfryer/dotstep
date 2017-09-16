@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>netcoreapp1.0</TargetFramework>
+    <ApplicationIcon />
+    <OutputTypeEx>exe</OutputTypeEx>
+    <StartupObject />
+    <AssemblyName>Tests</AssemblyName>
+    <RootNamespace>Tests</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\DotStep.Core\DotStep.Core.csproj" />
+    <ProjectReference Include="..\DotStep.StateMachines\DotStep.StateMachines.csproj" />
+  </ItemGroup>
+</Project>

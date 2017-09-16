@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Library</OutputType>
+    <TargetFramework>netcoreapp1.0</TargetFramework>
+    <ApplicationIcon />
+    <OutputTypeEx>library</OutputTypeEx>
+    <StartupObject />
+    <AssemblyName>DotStep.StateMachines</AssemblyName>
+    <RootNamespace>DotStep.StateMachines</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="CFProxyStateMachine.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="AWSSDK.CertificateManager" Version="3.3.2.14" />
+    <PackageReference Include="AWSSDK.CloudFront" Version="3.3.5" />
+    <PackageReference Include="AWSSDK.Route53" Version="3.3.8" />
+    <PackageReference Include="Newtonsoft.Json" Version="10.0.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\DotStep.Core\DotStep.Core.csproj" />
+  </ItemGroup>
+</Project>

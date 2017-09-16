@@ -1,3 +1,7 @@
 .vs
 /DotStep.Core/bin
 /DotStep.Core/obj
+/Tests/bin
+/Tests/obj
+/DotStep.StateMachines/bin
+/DotStep.StateMachines/obj
