@@ -1,11 +1,16 @@
-﻿using System;
+﻿using Amazon.Lambda;
+using Amazon.Lambda.Model;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace DotStep.Core
 {
@@ -22,7 +27,8 @@ namespace DotStep.Core
         {
             get
             {
-                return Assembly.GetEntryAssembly().GetTypes()
+
+                return GetType().GetTypeInfo().Assembly.GetTypes()
                                      .Where(t => typeof(IState).IsAssignableFrom(t) &&
                                             t.GetTypeInfo().IsClass &&
                                             t.GetTypeInfo().IsSealed &&
@@ -56,24 +62,94 @@ namespace DotStep.Core
 
         }
 
-        public string Publish(string region, string accountId)
+        public async Task PublishAsync(
+            string region, 
+            string accountId, 
+            string roleName,
+            string publishLocation)
         {
+            var statMachineName = GetType().Name;
 
-            foreach (var state in States) {
+            // Build the code
+            var buildProcess = Process.Start(new ProcessStartInfo("dotnet", "publish")
+            {
 
-            }
-
-            var buildProcess = Process.Start(new ProcessStartInfo("dotnet", "publish") {
-                
             });
 
-            while (!buildProcess.HasExited) {
+            while (!buildProcess.HasExited)
+            {
                 Console.WriteLine("Waiting for dotnet publish to complete. " + DateTime.UtcNow.ToString());
                 Thread.Sleep(250);
             }
 
+            if (!Directory.Exists("deployment"))
+                Directory.CreateDirectory("deployment");
 
-            throw new NotImplementedException();
+            // Zip the code.
+            var fileLocation = "deployment/" + statMachineName + ".zip";
+            if (File.Exists(fileLocation))
+                File.Delete(fileLocation);
+            ZipFile.CreateFromDirectory(publishLocation, fileLocation);
+
+            var statMachineDefinitionJson = Describe(region, accountId);
+
+            foreach (var state in States.Where(s => s is ITaskState))
+            {
+                var lambdaName = $"{statMachineName}.{state.Name}";
+                Console.WriteLine("Creating function: " + lambdaName);
+
+                using (var codeStream = new MemoryStream())
+                {
+                    File.Open(fileLocation, FileMode.Open).CopyTo(codeStream);
+
+                    IAmazonLambda lambda = new AmazonLambdaClient();
+
+                    Console.WriteLine($"Processing Lambda for region: {region}.");
+                    
+                    try
+                    {
+                        var getFunctionResult = await lambda.GetFunctionAsync(new GetFunctionRequest
+                        {
+                            FunctionName = lambdaName
+                        });
+
+                        Console.WriteLine($"Updating function: {lambdaName}");
+
+                        var updateFunctionResult = await lambda.UpdateFunctionCodeAsync(new UpdateFunctionCodeRequest
+                        {
+                            FunctionName = lambdaName,
+                            Publish = true,
+                            ZipFile = codeStream
+                        });
+
+                    }
+                    catch (ResourceNotFoundException)
+                    {
+                        // this is where we have to create it..
+
+                        Console.WriteLine("Function not found, creating now...");
+
+                        var assemblyName = GetType().GetTypeInfo().Assembly.GetName().Name;
+                        var namespaceName = GetType().GetTypeInfo().Namespace;
+                        var className = GetType().Name;
+                        var handler = $"{assemblyName}::{namespaceName}.{className}::Execute";
+
+                        var createFunctionResult = await lambda.CreateFunctionAsync(new CreateFunctionRequest
+                        {
+                            Runtime = Runtime.Dotnetcore10,
+                            FunctionName = lambdaName,
+                            Handler = handler,
+                            Role = $"arn:aws:iam::{accountId}:role/{roleName}",
+                            Timeout = 30,
+                            MemorySize = 512,
+                            Code = new FunctionCode
+                            {
+                                ZipFile = codeStream
+                            }
+                        });
+                    }
+                }
+            }
         }
 
         void DescribeState(StringBuilder sb, IState state, string region, string accountId)

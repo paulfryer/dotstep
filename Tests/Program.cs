@@ -21,7 +21,7 @@ namespace Tests
 
             IStateMachine stateMachine = new CFProxyStateMachine();
 
-            stateMachine.Publish("us-west-2", "123456789");
+            await stateMachine.PublishAsync("us-west-2", "123456789", "myrole", @"F:\Projects\dotstep\Tests\bin\Debug\netcoreapp1.0\publish");
 
         }
 
