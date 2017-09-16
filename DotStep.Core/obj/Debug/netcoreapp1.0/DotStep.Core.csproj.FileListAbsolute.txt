@@ -1,7 +1,0 @@
-F:\Projects\dotstep\DotStep.Core\bin\Debug\netcoreapp1.0\DotStep.Core.deps.json
-F:\Projects\dotstep\DotStep.Core\bin\Debug\netcoreapp1.0\DotStep.Core.dll
-F:\Projects\dotstep\DotStep.Core\bin\Debug\netcoreapp1.0\DotStep.Core.pdb
-F:\Projects\dotstep\DotStep.Core\obj\Debug\netcoreapp1.0\DotStep.Core.csproj.CoreCompileInputs.cache
-F:\Projects\dotstep\DotStep.Core\obj\Debug\netcoreapp1.0\DotStep.Core.AssemblyInfo.cs
-F:\Projects\dotstep\DotStep.Core\obj\Debug\netcoreapp1.0\DotStep.Core.dll
-F:\Projects\dotstep\DotStep.Core\obj\Debug\netcoreapp1.0\DotStep.Core.pdb
