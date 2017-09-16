@@ -1,0 +1,8 @@
+F:\Projects\dotstep\Functions\bin\Debug\netcoreapp1.0\DotStep.Core.deps.json
+F:\Projects\dotstep\Functions\bin\Debug\netcoreapp1.0\DotStep.Core.dll
+F:\Projects\dotstep\Functions\bin\Debug\netcoreapp1.0\DotStep.Core.pdb
+F:\Projects\dotstep\Functions\obj\Debug\netcoreapp1.0\DotStep.Core.csprojResolveAssemblyReference.cache
+F:\Projects\dotstep\Functions\obj\Debug\netcoreapp1.0\DotStep.Core.csproj.CoreCompileInputs.cache
+F:\Projects\dotstep\Functions\obj\Debug\netcoreapp1.0\DotStep.Core.AssemblyInfo.cs
+F:\Projects\dotstep\Functions\obj\Debug\netcoreapp1.0\DotStep.Core.dll
+F:\Projects\dotstep\Functions\obj\Debug\netcoreapp1.0\DotStep.Core.pdb

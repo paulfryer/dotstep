@@ -1,0 +1,12 @@
+F:\Projects\dotnetonaws\Functions\bin\Debug\netcoreapp1.0\InstanceTypes.csv
+F:\Projects\dotnetonaws\Functions\bin\Debug\netcoreapp1.0\Functions.dll.config
+F:\Projects\dotnetonaws\Functions\bin\Debug\netcoreapp1.0\Functions.deps.json
+F:\Projects\dotnetonaws\Functions\bin\Debug\netcoreapp1.0\Functions.runtimeconfig.json
+F:\Projects\dotnetonaws\Functions\bin\Debug\netcoreapp1.0\Functions.runtimeconfig.dev.json
+F:\Projects\dotnetonaws\Functions\bin\Debug\netcoreapp1.0\Functions.dll
+F:\Projects\dotnetonaws\Functions\bin\Debug\netcoreapp1.0\Functions.pdb
+F:\Projects\dotnetonaws\Functions\obj\Debug\netcoreapp1.0\Functions.csproj.CoreCompileInputs.cache
+F:\Projects\dotnetonaws\Functions\obj\Debug\netcoreapp1.0\Functions.AssemblyInfo.cs
+F:\Projects\dotnetonaws\Functions\obj\Debug\netcoreapp1.0\Functions.dll
+F:\Projects\dotnetonaws\Functions\obj\Debug\netcoreapp1.0\Functions.pdb
+F:\Projects\dotnetonaws\Functions\obj\Debug\netcoreapp1.0\Functions.csprojResolveAssemblyReference.cache
