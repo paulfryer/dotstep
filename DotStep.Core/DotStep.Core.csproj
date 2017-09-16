@@ -8,6 +8,16 @@
     <StartupObject />
     <AssemblyName>DotStep.Core</AssemblyName>
     <RootNamespace>DotStep.Core</RootNamespace>
+    <Version>1.0.1</Version>
+    <PackageId>DotStep.Core</PackageId>
+    <Authors>Paul Fryer</Authors>
+    <Company />
+    <Product />
+    <Description>Library for creating AWS Step Functions using a code first approach. Edit
+Add topics
+</Description>
+    <PackageProjectUrl>https://github.com/paulfryer/dotstep</PackageProjectUrl>
+    <PackageTags>AWS StepFunctions DotNet</PackageTags>
   </PropertyGroup>
 
   <ItemGroup>
