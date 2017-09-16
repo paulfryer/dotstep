@@ -6716,10 +6716,10 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "F:\\Projects\\dotstep\\Functions\\DotStep.Core.csproj",
+      "projectUniqueName": "F:\\Projects\\dotstep\\DotStep.Core\\DotStep.Core.csproj",
       "projectName": "DotStep.Core",
-      "projectPath": "F:\\Projects\\dotstep\\Functions\\DotStep.Core.csproj",
-      "outputPath": "F:\\Projects\\dotstep\\Functions\\obj\\",
+      "projectPath": "F:\\Projects\\dotstep\\DotStep.Core\\DotStep.Core.csproj",
+      "outputPath": "F:\\Projects\\dotstep\\DotStep.Core\\obj\\",
       "projectStyle": "PackageReference",
       "originalTargetFrameworks": [
         "netcoreapp1.0"
