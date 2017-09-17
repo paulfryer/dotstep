@@ -95,7 +95,7 @@ namespace DotStep.Core
 
             foreach (var state in States.Where(s => s is ITaskState))
             {
-                var lambdaName = $"{statMachineName}.{state.Name}";
+                var lambdaName = $"{statMachineName}-{state.Name}";
                 Console.WriteLine("Creating function: " + lambdaName);
 
                 using (var codeStream = new MemoryStream())
@@ -105,7 +105,7 @@ namespace DotStep.Core
                     IAmazonLambda lambda = new AmazonLambdaClient();
 
                     Console.WriteLine($"Processing Lambda for region: {region}.");
-                    
+
                     try
                     {
                         var getFunctionResult = await lambda.GetFunctionAsync(new GetFunctionRequest
@@ -125,31 +125,58 @@ namespace DotStep.Core
                     }
                     catch (ResourceNotFoundException)
                     {
-                        // this is where we have to create it..
-
-                        Console.WriteLine("Function not found, creating now...");
-
-                        var assemblyName = GetType().GetTypeInfo().Assembly.GetName().Name;
-                        var namespaceName = GetType().GetTypeInfo().Namespace;
-                        var className = GetType().Name;
-                        var handler = $"{assemblyName}::{namespaceName}.{className}::Execute";
-
-                        var createFunctionResult = await lambda.CreateFunctionAsync(new CreateFunctionRequest
+                        try
                         {
-                            Runtime = Runtime.Dotnetcore10,
-                            FunctionName = lambdaName,
-                            Handler = handler,
-                            Role = $"arn:aws:iam::{accountId}:role/{roleName}",
-                            Timeout = 30,
-                            MemorySize = 512,
-                            Code = new FunctionCode
+                            // this is where we have to create it..
+
+                            Console.WriteLine("Function not found, creating now...");
+
+                            var assemblyName = GetType().GetTypeInfo().Assembly.GetName().Name;
+                            var namespaceName = GetType().GetTypeInfo().Namespace;
+                            var handler = $"{assemblyName}::{namespaceName}.{state.Name}::Execute";
+
+                            var createFunctionResult = await lambda.CreateFunctionAsync(new CreateFunctionRequest
                             {
-                                ZipFile = codeStream
-                            }
-                        });
+                                Runtime = Runtime.Dotnetcore10,
+                                FunctionName = lambdaName,
+                                Handler = handler,
+                                Role = $"arn:aws:iam::{accountId}:role/{roleName}",
+                                Timeout = 30,
+                                MemorySize = 512,
+                                Code = new FunctionCode
+                                {
+                                    ZipFile = codeStream
+                                }
+                            });
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.Write(ex);
+                        }
+
+                    }
+                    catch (Exception ex) {
+                        Console.Write(ex);
                     }
                 }
             }
+        }
+
+        public const string DefaultRoleName = "lambda_basic_execution";
+        public string DefaultCodeLocation
+        {
+            get
+            {
+                return $@"{Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)}\publish";
+            }
+        }
+
+
+
+
+        public Task PublishAsync(string region, string accountId)
+        {
+            return PublishAsync(region, accountId, DefaultRoleName, DefaultCodeLocation);
         }
 
         void DescribeState(StringBuilder sb, IState state, string region, string accountId)
