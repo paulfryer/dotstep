@@ -1,5 +1,6 @@
 ﻿using Amazon.Lambda;
 using Amazon.Lambda.Model;
+using Amazon.Runtime;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -63,6 +64,7 @@ namespace DotStep.Core
         }
 
         public async Task PublishAsync(
+            AWSCredentials awsCredentials,
             string region, 
             string accountId, 
             string roleName,
@@ -102,7 +104,7 @@ namespace DotStep.Core
                 {
                     File.Open(fileLocation, FileMode.Open).CopyTo(codeStream);
 
-                    IAmazonLambda lambda = new AmazonLambdaClient();
+                    IAmazonLambda lambda = new AmazonLambdaClient(awsCredentials);
 
                     Console.WriteLine($"Processing Lambda for region: {region}.");
 
@@ -174,9 +176,9 @@ namespace DotStep.Core
 
 
 
-        public Task PublishAsync(string region, string accountId)
+        public Task PublishAsync(AWSCredentials awsCredentials, string region, string accountId)
         {
-            return PublishAsync(region, accountId, DefaultRoleName, DefaultCodeLocation);
+            return PublishAsync(awsCredentials, region, accountId, DefaultRoleName, DefaultCodeLocation);
         }
 
         void DescribeState(StringBuilder sb, IState state, string region, string accountId)

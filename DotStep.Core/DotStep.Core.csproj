@@ -8,7 +8,7 @@
     <StartupObject />
     <AssemblyName>DotStep.Core</AssemblyName>
     <RootNamespace>DotStep.Core</RootNamespace>
-    <Version>1.0.1</Version>
+    <Version>1.0.3</Version>
     <PackageId>DotStep.Core</PackageId>
     <Authors>Paul Fryer</Authors>
     <Company />
