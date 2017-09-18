@@ -24,7 +24,19 @@ namespace Tests
 
             var credentials = Amazon.Util.ProfileManager.GetAWSCredentials("home-dev");
 
-            await stateMachine.PublishAsync(credentials, "us-west-2", "123456789");
+            //await stateMachine.PublishAsync(credentials, "us-west-2", "123456789");
+
+            var context = new CFProxyContext
+            {
+                DomainName = "testdomain.com",
+                Regions = "us-west-1",
+                Services = "lambda"
+            };
+
+            var engine = new StateMachineEngine<CFProxyStateMachine, CFProxyContext>(context);
+
+            await engine.Start();
+
 
         }
 
