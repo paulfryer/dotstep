@@ -14,8 +14,23 @@ namespace Tests
 
         static void Main(string[] args)
         {
-            TestStateMachine();
+            TestStateMachine2();
             Console.ReadKey();
+        }
+
+        public static async Task TestStateMachine2()
+        {
+            IStateMachine stateMachine = new StepFunctionQueueStateMachine();
+
+            var context = new SFQueueContext
+            {
+            };
+
+            var engine = new StateMachineEngine<StepFunctionQueueStateMachine, SFQueueContext>(context);
+
+            await engine.Start();
+
+
         }
 
         public static async Task TestStateMachine()
