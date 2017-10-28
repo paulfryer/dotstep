@@ -12,7 +12,7 @@ using Amazon.Route53.Model;
 using DotStep.Core;
 using System.Linq.Expressions;
 
-namespace DotStep.StateMachines
+namespace DotStep.StateMachines.StepFunctionQueue
 {
 
 
@@ -29,10 +29,6 @@ namespace DotStep.StateMachines
         public bool HasMoreMessages { get; set; }
     }
 
-    public abstract class SFQueueTaskState<TNext> : TaskState<SFQueueContext, TNext> where TNext : IState {
-    }
-
-
 
     public sealed class GetQueueStats : TaskState<SFQueueContext, CheckIfQueueHasMessages>
     {
@@ -42,18 +38,23 @@ namespace DotStep.StateMachines
         }
     }
 
+
     public sealed class CheckIfQueueHasMessages : ChoiceState
     {
-        Expression<Func<int, bool>> exp = n => n > 0;
+        
 
         public override List<Choice> Choices {
             get {
                 return new List<Choice> {
-                    new Choice<GetQueueStats, SFQueueContext>(context => context.JobQueueMessages < 0),
-                    new Choice<GetQueueStats, SFQueueContext>(context => context.HasMoreMessages == true)
+                    new Choice<Done3, SFQueueContext>(c => c.JobQueueMessages < 0),
+                    new Choice<Done3, SFQueueContext>(c => c.HasMoreMessages == true)
                 };
             }
         }
+    }
+
+    public sealed class Done3 : PassState {
+        public override bool End => true;
     }
 
 

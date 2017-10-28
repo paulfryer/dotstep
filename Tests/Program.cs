@@ -2,6 +2,7 @@
 using Amazon.Runtime;
 using DotStep.Core;
 using DotStep.StateMachines;
+using DotStep.StateMachines.StepFunctionQueue;
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
@@ -27,6 +28,8 @@ namespace Tests
             };
 
             var engine = new StateMachineEngine<StepFunctionQueueStateMachine, SFQueueContext>(context);
+
+            var json = stateMachine.Describe("us-west-2", "12345679");
 
             await engine.Start();
 
