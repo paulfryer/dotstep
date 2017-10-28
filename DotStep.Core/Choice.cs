@@ -56,38 +56,7 @@ namespace DotStep.Core
 
             var operatorMap = operatorMapping.Single(map => map.Key == nodeType);
 
-            return $"{typeMap.Value}{operatorMap.Value}";
-
-
-            string stepFunctionOperator = "";
-
-            switch (property.PropertyType.Name) {
-                case "Boolean":
-                    stepFunctionOperator += "Boolean";
-                    break;
-                case "Int32":
-                case "Int64":
-                    stepFunctionOperator += "Numeric";
-                    break;
-                default:
-                    throw new NotImplementedException("Support for property type not implemented: " + property.PropertyType.Name);
-            }
-
-            switch (nodeType)
-            {
-                case ExpressionType.Equal:
-
-                case ExpressionType.GreaterThan:
-                    stepFunctionOperator += "GreaterThan";
-                    break;
-                case ExpressionType.GreaterThanOrEqual:
-                    stepFunctionOperator += "GreaterThanEquals";
-                    break;
-                default:
-                    throw new NotImplementedException("nodeType not implemented: " + nodeType);
-            }
-
-            return stepFunctionOperator;
+            return $"{typeMap.Value}{operatorMap.Value}";            
         }
     }
 
