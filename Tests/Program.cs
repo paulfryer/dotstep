@@ -29,7 +29,7 @@ namespace Tests
 
             var engine = new StateMachineEngine<StepFunctionQueueStateMachine, SFQueueContext>(context);
 
-            var json = stateMachine.Describe("us-west-2", "12345679");
+            //var json = stateMachine.Describe("us-west-2", "12345679");
 
             await engine.Start();
 

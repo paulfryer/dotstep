@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace DotStep.Core
 {
@@ -6,12 +7,15 @@ namespace DotStep.Core
     {
         public abstract List<Choice> Choices { get; }
 
-        // TODO: Implement Default.....
 
-        //public string Default
+        public virtual Type Default { get; set; }
     }
 
-   // public abstract class ChoiceState<TContext> : ChoiceState where TContext : IContext {
-
-   // }
+    public abstract class ChoiceState<TDefault> : ChoiceState where TDefault : IState
+    {
+        protected ChoiceState()
+        {
+            Default = typeof(TDefault);
+        }
+    }
 }

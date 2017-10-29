@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace DotStep.Core
 {
@@ -6,6 +7,8 @@ namespace DotStep.Core
     {
 
         List<Choice> Choices { get; }
+
+        Type Default { get; }
     }
 
 

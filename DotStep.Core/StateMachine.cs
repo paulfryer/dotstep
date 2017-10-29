@@ -1,6 +1,7 @@
 ﻿using Amazon.Lambda;
 using Amazon.Lambda.Model;
 using Amazon.Runtime;
+using Newtonsoft.Json;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -59,8 +60,12 @@ namespace DotStep.Core
             sb.Append("}");
             sb.AppendLine("}");
 
-            return sb.ToString();
+            var rawJson = sb.ToString();
 
+            var anonObject = JsonConvert.DeserializeObject(rawJson);
+            var formattedJson = JsonConvert.SerializeObject(anonObject, Formatting.Indented);
+
+            return formattedJson;
         }
 
         public async Task PublishAsync(
@@ -212,6 +217,10 @@ namespace DotStep.Core
                     appendComma = true;
                 }
                 sb.AppendLine("]");
+                if (choiceState.Default != null) {
+                    sb.Append(",");
+                    sb.AppendLine($"\"Default\": \"{choiceState.Default.Name}\"");
+                }
             }
             if (state is IPassState){
                 sb.AppendLine("\"Type\":\"Pass\",");

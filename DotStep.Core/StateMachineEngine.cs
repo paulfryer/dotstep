@@ -41,17 +41,17 @@ namespace DotStep.Core
                 else if (state is IChoiceState)
                 {
                     var choiceState = state as IChoiceState;
+                    var useDefault = true;
                     foreach (var choice in choiceState.Choices)
                     {
+                        var useNext = false;
                         var compairValue = typeof(TContext).GetProperty(choice.Variable).GetValue(context);
-
-                        var operatorStart = choice.Operator.Substring(0, 2).ToUpper();
-
+                        var operatorStart = choice.Operator.Substring(0, 2).ToUpper();                        
                         switch (operatorStart)
                         {
                             case "BO":
                                 if ((bool)compairValue == (bool)choice.Value)
-                                    await ChangeState(choice.Next);
+                                    useNext = true;                                  
                                 break;
                             case "NU":
                                 var numericCompairValue = Convert.ToDecimal(compairValue);
@@ -60,18 +60,25 @@ namespace DotStep.Core
                                 {
                                     case Operator.NumericEquals:
                                         if (numericCompairValue == numericValue)
-                                            await ChangeState(choice.Next);
+                                            useNext = true;                                           
                                         break;
                                     case Operator.NumericGreaterThan:
                                         if (numericCompairValue > numericValue)
-                                            await ChangeState(choice.Next);
+                                            useNext = true;
                                         break;
                                     default: throw new NotImplementedException("Not implemented: " + choice.Operator);
                                 }
                                 break;
                             default: throw new NotImplementedException("Operator not supported: " + choice.Operator);
                         }
+                        if (useNext)
+                        {
+                            useDefault = false;
+                            await ChangeState(choice.Next);
+                        }                            
                     }
+                    if (useDefault)
+                        await ChangeState(choiceState.Default);
                 }
                 else if (state is IWaitState)
                 {
