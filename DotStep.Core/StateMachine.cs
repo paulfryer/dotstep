@@ -1,4 +1,6 @@
-﻿using Amazon.Lambda;
+﻿using Amazon.CloudFormation;
+using Amazon.CloudFormation.Model;
+using Amazon.Lambda;
 using Amazon.Lambda.Model;
 using Amazon.Runtime;
 using Amazon.StepFunctions;
@@ -40,6 +42,30 @@ namespace DotStep.Core
                                             t.Namespace == StartAt.Namespace)
                                          .Select(t => (IState)Activator.CreateInstance(t));
             }
+        }
+
+
+
+        public async Task<string> BuildCloudFormationTemplate()
+        {
+            IAmazonCloudFormation cloudFormation = new AmazonCloudFormationClient();
+
+    
+
+            var resources = new List<dynamic>();
+
+
+
+
+            var json = JsonConvert.SerializeObject(resources);
+
+
+            var validateResult = await cloudFormation.ValidateTemplateAsync(new ValidateTemplateRequest
+            {
+                TemplateBody = json
+            });
+
+            return json;
         }
 
         public string Describe(string region, string accountId)
