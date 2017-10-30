@@ -1,8 +1,11 @@
 ﻿using Amazon;
 using Amazon.Runtime;
 using DotStep.Core;
+using DotStep.Core.Publish;
 using DotStep.StateMachines;
+using DotStep.StateMachines.CFProxy;
 using DotStep.StateMachines.StepFunctionQueue;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
@@ -15,8 +18,25 @@ namespace Tests
 
         static void Main(string[] args)
         {
-            TestStateMachine2();
+            TestStateMachine3();
             Console.ReadKey();
+        }
+
+        public static async Task TestStateMachine3()
+        {
+            IStateMachine stateMachine = new PublishStateMachine();
+
+            var context = new PublishContext
+            {
+                Region = "us-west-2",
+                CodeS3Bucket = "code-bucket-here",
+                CodeS3Key = "StepFunctionQueueStateMachine.zip",
+                CodeStateMachineClassName = "StepFunctionQueueStateMachine"
+            };
+
+            var engine = new StateMachineEngine<PublishStateMachine, PublishContext>(context);
+            await engine.Start();
+
         }
 
         public static async Task TestStateMachine2()
@@ -25,24 +45,19 @@ namespace Tests
 
             var context = new SFQueueContext
             {
+               JobQueueName = "swift-newFile",
+               ParallelLevel = 10,
+               StateMachineName = "swift-singleFileProcessor-6"
             };
-
+            
             var engine = new StateMachineEngine<StepFunctionQueueStateMachine, SFQueueContext>(context);
-
-            //var json = stateMachine.Describe("us-west-2", "12345679");
-
             await engine.Start();
-
 
         }
 
         public static async Task TestStateMachine()
         {
             IStateMachine stateMachine = new CFProxyStateMachine();
-
-            var credentials = Amazon.Util.ProfileManager.GetAWSCredentials("home-dev");
-
-            //await stateMachine.PublishAsync(credentials, "us-west-2", "123456789");
 
             var context = new CFProxyContext
             {
@@ -52,10 +67,7 @@ namespace Tests
             };
 
             var engine = new StateMachineEngine<CFProxyStateMachine, CFProxyContext>(context);
-
             await engine.Start();
-
-
         }
 
 

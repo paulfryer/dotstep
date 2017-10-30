@@ -3,5 +3,8 @@
 /DotStep.Core/obj
 /Tests/bin
 /Tests/obj
+/Tests/deployment
+/Tests/extract
 /DotStep.StateMachines/bin
 /DotStep.StateMachines/obj
+

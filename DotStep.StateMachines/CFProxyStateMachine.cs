@@ -11,7 +11,7 @@ using Amazon.Route53;
 using Amazon.Route53.Model;
 using DotStep.Core;
 
-namespace DotStep.StateMachines
+namespace DotStep.StateMachines.CFProxy
 {
     public sealed class CFProxyStateMachine : StateMachine<ValidateInputParameters>
     {

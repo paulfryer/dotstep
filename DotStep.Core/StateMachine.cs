@@ -1,6 +1,8 @@
 ﻿using Amazon.Lambda;
 using Amazon.Lambda.Model;
 using Amazon.Runtime;
+using Amazon.StepFunctions;
+using Amazon.StepFunctions.Model;
 using Newtonsoft.Json;
 using System;
 using System.Collections;
@@ -16,6 +18,7 @@ using System.Threading.Tasks;
 
 namespace DotStep.Core
 {
+
     public abstract class StateMachine<TStartsAt> : IStateMachine 
         where TStartsAt : IState
     {
@@ -68,15 +71,22 @@ namespace DotStep.Core
             return formattedJson;
         }
 
+        public Task PublishAsync(AWSCredentials awsCredentials, string region, string accountId)
+        {
+            return PublishAsync(awsCredentials, region, accountId, DefaultCodeLocation);
+        }
+
         public async Task PublishAsync(
             AWSCredentials awsCredentials,
             string region, 
-            string accountId, 
-            string roleName,
+            string accountId,
             string publishLocation)
         {
-            var statMachineName = GetType().Name;
+            IAmazonLambda lambda = new AmazonLambdaClient(awsCredentials);
+            IAmazonStepFunctions stepFunctions = new AmazonStepFunctionsClient(awsCredentials);
 
+            var statMachineName = GetType().Name;
+            /*
             // Build the code
             var buildProcess = Process.Start(new ProcessStartInfo("dotnet", "publish")
             {
@@ -88,7 +98,7 @@ namespace DotStep.Core
                 Console.WriteLine("Waiting for dotnet publish to complete. " + DateTime.UtcNow.ToString());
                 Thread.Sleep(250);
             }
-
+            */
             if (!Directory.Exists("deployment"))
                 Directory.CreateDirectory("deployment");
 
@@ -96,6 +106,7 @@ namespace DotStep.Core
             var fileLocation = "deployment/" + statMachineName + ".zip";
             if (File.Exists(fileLocation))
                 File.Delete(fileLocation);
+
             ZipFile.CreateFromDirectory(publishLocation, fileLocation);
 
             var statMachineDefinitionJson = Describe(region, accountId);
@@ -107,10 +118,7 @@ namespace DotStep.Core
 
                 using (var codeStream = new MemoryStream())
                 {
-                    File.Open(fileLocation, FileMode.Open).CopyTo(codeStream);
-
-                    IAmazonLambda lambda = new AmazonLambdaClient(awsCredentials);
-
+                    File.Open(fileLocation, FileMode.Open).CopyTo(codeStream);       
                     Console.WriteLine($"Processing Lambda for region: {region}.");
 
                     try
@@ -134,22 +142,24 @@ namespace DotStep.Core
                     {
                         try
                         {
-                            // this is where we have to create it..
-
                             Console.WriteLine("Function not found, creating now...");
 
                             var assemblyName = GetType().GetTypeInfo().Assembly.GetName().Name;
                             var namespaceName = GetType().GetTypeInfo().Namespace;
                             var handler = $"{assemblyName}::{namespaceName}.{state.Name}::Execute";
 
+                            var lambdaRoleName = state.GetAttributeValue((ExplicitRole a) => a.RoleName, DefaultLambdaRoleName);
+                            var memory = state.GetAttributeValue((FunctionMemory a) => a.Memory, DefaultMemory);
+                            var timeout = state.GetAttributeValue((FunctionTimeout a) => a.Timeout, DefaultTimeout);
+                            
                             var createFunctionResult = await lambda.CreateFunctionAsync(new CreateFunctionRequest
                             {
                                 Runtime = Runtime.Dotnetcore10,
                                 FunctionName = lambdaName,
                                 Handler = handler,
-                                Role = $"arn:aws:iam::{accountId}:role/{roleName}",
-                                Timeout = 30,
-                                MemorySize = 512,
+                                Role = $"arn:aws:iam::{accountId}:role/{lambdaRoleName}",
+                                Timeout = timeout,
+                                MemorySize = memory,
                                 Code = new FunctionCode
                                 {
                                     ZipFile = codeStream
@@ -167,9 +177,59 @@ namespace DotStep.Core
                     }
                 }
             }
+
+            var stateMachineRoleName = this.GetAttributeValue((ExplicitRole a) => a.RoleName, DefaultStatesExecutionRoleName.Replace("{region}", region));
+            var stateMachineRoleArn = $"arn:aws:iam::{accountId}:role/service-role/{stateMachineRoleName}";
+            var definition = Describe(region, accountId);
+            var stateMachineName = GetType().Name;
+            var version = 1;
+            var publishStateMachine = true;
+
+            var listResult = await stepFunctions.ListStateMachinesAsync(new ListStateMachinesRequest
+            {
+                MaxResults = 1000
+            });
+            var latestVersion = listResult.StateMachines
+                                .Where(sm => sm.StateMachineArn.Contains(stateMachineName))                
+                                .Select(sm => sm.StateMachineArn)
+                                .OrderByDescending(arn => arn)
+                                .FirstOrDefault();
+
+            if (latestVersion != null)
+            {
+                Console.WriteLine("Existsing version found: " + latestVersion);
+                version = Convert.ToInt16(latestVersion.Substring(latestVersion.Length - 3));
+                var descriptionResult = await stepFunctions.DescribeStateMachineAsync(new DescribeStateMachineRequest
+                {
+                    StateMachineArn = latestVersion
+                });
+
+                if (descriptionResult.Definition != definition)
+                {
+                    Console.WriteLine("Step function definintion has changed, creating new version.");
+                    version++;
+                }
+                else publishStateMachine = false;    
+            }
+
+            if (publishStateMachine) {
+                var paddedVersion = version.ToString().PadLeft(3, '0');
+                stateMachineName += $"-v{ paddedVersion}";
+
+                var createStateMachineResult = await stepFunctions.CreateStateMachineAsync(new CreateStateMachineRequest
+                {
+                    Definition = definition,
+                    Name = stateMachineName,
+                    RoleArn = stateMachineRoleArn
+                });
+                Console.Write(createStateMachineResult.StateMachineArn);
+            }
         }
 
-        public const string DefaultRoleName = "lambda_basic_execution";
+        public const string DefaultLambdaRoleName = "lambda_basic_execution";
+        public const string DefaultStatesExecutionRoleName = "StatesExecutionRole-{region}";
+        public const int DefaultTimeout = 30;
+        public const int DefaultMemory = 128;
         public string DefaultCodeLocation
         {
             get
@@ -177,15 +237,7 @@ namespace DotStep.Core
                 return $@"{Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)}\publish";
             }
         }
-
-
-
-
-        public Task PublishAsync(AWSCredentials awsCredentials, string region, string accountId)
-        {
-            return PublishAsync(awsCredentials, region, accountId, DefaultRoleName, DefaultCodeLocation);
-        }
-
+        
         void DescribeState(StringBuilder sb, IState state, string region, string accountId)
         {
             sb.AppendLine("\"" + state.GetType().Name + "\" : { ");

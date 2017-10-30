@@ -7,36 +7,39 @@ using Amazon.StepFunctions;
 using Amazon.StepFunctions.Model;
 using Amazon.SQS;
 using Amazon.SQS.Model;
+using Amazon.IdentityManagement;
+using Amazon.IdentityManagement.Model;
 
 namespace DotStep.StateMachines.StepFunctionQueue
-{
-    public sealed class StepFunctionQueueStateMachine : StateMachine<GetQueueStats>
+{    
+    public sealed class StepFunctionQueueStateMachine : StateMachine<InitializeContext>
     {
     }
-    public class SFQueueContext : IContext
+
+    public sealed class InitializeContext : TaskState<SFQueueContext, GetQueueStats>
     {
 
-        public string JobQueueUrl { get; set; }
-        public int JobQueueMessages { get; set; }
+        IAmazonIdentityManagementService iam = new AmazonIdentityManagementServiceClient();
 
-        public bool HasMoreMessages { get; set; }
-        public bool HasCapacity { get; set; }
-        
-        public string StateMachineArn { get; set; }
+        public override async Task<SFQueueContext> Execute(SFQueueContext context)
+        {
+            if (String.IsNullOrEmpty(context.Region))
+                context.Region = Amazon.Util.EC2InstanceMetadata.Region.SystemName;
+            var getUserResult = await iam.GetUserAsync(new GetUserRequest { });
+            context.AccountId = getUserResult.User.Arn.Split(':')[4];
 
-        public int AvailableCapacity { get; set; }
-        
-        public int ParallelProcessing { get; set; }
+            context.JobQueueUrl = $"https://sqs.us-west-2.amazonaws.com/{context.AccountId}/{context.JobQueueName}";
+            context.StateMachineArn = $"arn:aws:states:us-west-2:{context.AccountId}:stateMachine:{context.StateMachineName}";
 
-        public int MessagesWaitingForProcessing { get; set; }
-        public int MessagesProcessing { get; set; }
-        
+
+            return context;
+        }
     }
 
     public sealed class GetQueueStats : TaskState<SFQueueContext, CheckIfQueueHasMessages>
     {
         IAmazonSQS sqs = new AmazonSQSClient();
-        
+
         public override async Task<SFQueueContext> Execute(SFQueueContext @event)
         {
             var getQueueAttributesResult = await sqs.GetQueueAttributesAsync(new GetQueueAttributesRequest
@@ -44,14 +47,35 @@ namespace DotStep.StateMachines.StepFunctionQueue
                 QueueUrl = @event.JobQueueUrl,
                 AttributeNames = new List<string> { "ApproximateNumberOfMessages", "ApproximateNumberOfMessagesNotVisible" }
             });
-            
-            @event.AvailableCapacity = @event.ParallelProcessing - getQueueAttributesResult.ApproximateNumberOfMessagesNotVisible;
+
+            @event.AvailableCapacity = @event.ParallelLevel - getQueueAttributesResult.ApproximateNumberOfMessagesNotVisible;
             @event.MessagesWaitingForProcessing = getQueueAttributesResult.ApproximateNumberOfMessages;
             @event.MessagesProcessing = getQueueAttributesResult.ApproximateNumberOfMessagesNotVisible;
 
             return @event;
         }
     }
+
+    public class SFQueueContext : IContext
+    {
+        public string Region { get; set; }
+        public string JobQueueName { get; set; }
+        public string StateMachineName { get; set; }
+
+        public string AccountId { get; internal set; }
+        public string JobQueueUrl { get; internal set; }        
+        public string StateMachineArn { get; internal set; }
+
+        public int ParallelLevel { get; set; }
+
+        public bool HasMoreMessages { get; internal set; }
+        public bool MoreCapacityAvailable { get; internal set; }
+        public int AvailableCapacity { get; internal set; }
+        public int MessagesWaitingForProcessing { get; internal set; }
+        public int MessagesProcessing { get; internal set; }
+        
+    }
+
 
     public sealed class CheckIfQueueHasMessages : ChoiceState<QueueEmpty>
     {
@@ -66,14 +90,14 @@ namespace DotStep.StateMachines.StepFunctionQueue
         }
     }
 
-    public sealed class CheckCapacity : ChoiceState
+    public sealed class CheckCapacity : ChoiceState<Wait>
     {
         public override List<Choice> Choices
         {
             get
             {
                 return new List<Choice>{
-                    new Choice<StartStepFunctions, SFQueueContext>(c => c.HasCapacity == true)
+                    new Choice<StartStepFunctions, SFQueueContext>(c => c.MoreCapacityAvailable == true)
                 };
             }
         }
@@ -87,8 +111,7 @@ namespace DotStep.StateMachines.StepFunctionQueue
         IAmazonSQS sqs = new AmazonSQSClient();
 
         public override async Task<SFQueueContext> Execute(SFQueueContext context)
-        {
-          
+        {         
 
             var maxMessages = context.AvailableCapacity < 10 ?
                 context.AvailableCapacity : 10;
@@ -114,7 +137,7 @@ namespace DotStep.StateMachines.StepFunctionQueue
 
             Console.WriteLine($"Started step function {context.StateMachineArn}, execution ID: {startExecutionResult.ExecutionArn}");
 
-            context.HasCapacity = false;
+            context.MoreCapacityAvailable = false;
 
             return context;
         }

@@ -50,7 +50,7 @@ namespace DotStep.Core
                         switch (operatorStart)
                         {
                             case "BO":
-                                if ((bool)compairValue == (bool)choice.Value)
+                                if (Convert.ToBoolean(compairValue) == Convert.ToBoolean(choice.Value))
                                     useNext = true;                                  
                                 break;
                             case "NU":
