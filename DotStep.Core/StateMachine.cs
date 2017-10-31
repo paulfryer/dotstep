@@ -52,43 +52,47 @@ namespace DotStep.Core
         {
             IAmazonCloudFormation cloudFormation = new AmazonCloudFormationClient();
 
-            var statMachineName = GetType().Name;
-            var resources = new List<dynamic>();
+            var stateMachineName = GetType().Name;
+
+            var template = new
+            {
+                Parameters = new {
+                    CodeS3Bucket = new {
+                        Type = "String"
+                    },
+                    CodeS3Key = new {
+                        Type = "String"
+                    }
+                },
+                Resources = new Dictionary<string, object>()
+            };
+
+
+            var lambdaNames = new List<String>();
 
             foreach (var state in States.Where(s => s is ITaskState))
             {
-                var lambdaName = $"{statMachineName}-{state.Name}";
-
+                var lambdaName = $"{stateMachineName}{state.Name}";
+                lambdaNames.Add(lambdaName);
                 var assemblyName = GetType().GetTypeInfo().Assembly.GetName().Name;
                 var namespaceName = GetType().GetTypeInfo().Namespace;
-
-                var assembly = Assembly.Load(new AssemblyName(assemblyName));
-
+                
                 var handler = $"{assemblyName}::{namespaceName}.{state.Name}::Execute";
 
-                var lambdaRoleName = state.GetAttributeValue((ExplicitRole a) => a.RoleName, DefaultLambdaRoleName);
+               // var lambdaRoleName = state.GetAttributeValue((ExplicitRole a) => a.RoleName, DefaultLambdaRoleName);
                 var memory = state.GetAttributeValue((FunctionMemory a) => a.Memory, DefaultMemory);
                 var timeout = state.GetAttributeValue((FunctionTimeout a) => a.Timeout, DefaultTimeout);
 
-                //var x= new System.Reflection.Emit.DynamicMethod("", null, null);
-                //var g = x.GetILGenerator();
-
-
-
-
-                var callAssemblyName = typeof(IAmazonStepFunctions).GetTypeInfo().Assembly.GetName().Name;
-
-                var callAssembly = AssemblyDefinition.ReadAssembly(
-                    Assembly.Load(new AssemblyName(callAssemblyName)).Location);
-                var callMethod = (MethodDefinition)callAssembly.MainModule.Types.First(t => t.Name == "IAmazonStepFunctions")
-                    .Methods.First(m => m.Name == "ListStateMachinesAsync");
-
-
+                var assembly = Assembly.Load(new AssemblyName(assemblyName));
                 var assemblyDefinition = AssemblyDefinition.ReadAssembly(assembly.Location);
                 var type = assemblyDefinition.MainModule.Types.FirstOrDefault(t => t.Name == state.GetType().Name);
                 var calls = type.Methods.First(x => x.Name == "Execute").Body
                     .Instructions.Where(x => x.OpCode == OpCodes.Call)
                     .Select(x => x.Operand);
+
+           
+
+                var actions = new List<string>();
 
                 foreach (var call in calls) {
                     if (call.GetType().GetProperty("GenericArguments") != null) {
@@ -97,7 +101,7 @@ namespace DotStep.Core
                         foreach (var field in arguments[0].Fields)
                         {
                             string fieldName = field.FieldType.FullName;
-                            if (fieldName.StartsWith("Amazon"))
+                            if (fieldName.StartsWith("Amazon") && fieldName.Contains("Response"))
                             {
                                 if (!amazon.Contains(fieldName))
                                 {
@@ -106,7 +110,9 @@ namespace DotStep.Core
                                     var service = fieldName.Split('.')[1];
                                     var method = fieldName.Split('.')[3].Replace("Response", string.Empty);
 
-                                    Console.WriteLine($"{service}:{method}");
+                                    var iamNamespace = DotStepUtil.GetIAMNamespace(service);
+
+                                    actions.Add($"{iamNamespace}:{method}");
                                 }
 
                             }
@@ -114,32 +120,145 @@ namespace DotStep.Core
                     }
                     
                 }
-               
 
-                var functionResource = new
+  
+
+                var lambdaRoleName = $"{lambdaName}Role";
+                var lambdaRole = new
                 {
-                    Runtime = Runtime.Dotnetcore10,
-                    FunctionName = lambdaName,
-                    Handler = handler,
-                    //Role = $"arn:aws:iam::{accountId}:role/{lambdaRoleName}",
-                    Timeout = timeout,
-                    MemorySize = memory,
-                    Code = new FunctionCode
+                    Type = "AWS::IAM::Role",
+                    Properties = new
                     {
-                        
+                        AssumeRolePolicyDocument = new
+                        {
+                            Version = "2012-10-17",
+                            Statement = new
+                            {
+                                Effect = "Allow",
+                                Principal = new
+                                {
+                                    Service = "lambda.amazonaws.com"
+                                },
+                                Action = "sts:AssumeRole"
+                            }
+                        },
+                        Policies = new List<dynamic> {
+                            new {
+                                PolicyName = $"{lambdaName}Policy",
+                                PolicyDocument = new
+                                {
+                                    Version = "2012-10-17",
+                                    Statement = new
+                                    {
+                                        Effect = actions.Any() ? "Allow" : "Deny",
+                                        Resource = "*",
+                                        Action = actions.Any() ? actions : new List<string>{"*" }
+                                    }
+                                }
+                            }
+                        }
                     }
                 };
+
+                template.Resources.Add(lambdaRoleName, lambdaRole);
+     
+                var functionResource = new
+                {
+                    Type = "AWS::Lambda::Function",
+                    Properties = new {
+                        Runtime = Runtime.Dotnetcore10.Value,
+                        Handler = handler,
+                        Timeout = timeout,
+                        MemorySize = memory,
+                        Code = new {
+                            S3Bucket = new { Ref = "CodeS3Bucket" },
+                            S3Key = new {Ref="CodeS3Key"}
+                        },
+                        Role = new Dictionary<string, List<string>> {
+                            { "Fn::GetAtt", new List<string>{
+                                lambdaRoleName, "Arn"
+                            } }
+                        }
+                    }
+                };
+
+                template.Resources.Add(lambdaName, functionResource);                
+
             }
 
-            // TODO: Build Role for lambda function, need to implement a lookup table for Service name to IAM service name.
+            
 
-            var json = JsonConvert.SerializeObject(resources);
+            var stateMachineRoleName = $"{stateMachineName}Role";
+            var stateMachineRole = new
+            {
+                Type = "AWS::IAM::Role",
+                Properties = new
+                {
+                    AssumeRolePolicyDocument = new
+                    {
+                        Version = "2012-10-17",
+                        Statement = new
+                        {
+                            Effect = "Allow",
+                            Principal = new
+                            {
+                                Service = new Dictionary<string, string> {
+                                    { "Fn::Sub", "states.${AWS::Region}.amazonaws.com" }
+                                },
+                                Action = "sts:AssumeRole"
+                            }
+                        },
+                        Policies = new List<dynamic> {
+                            new {
+                                PolicyName = $"{stateMachineName}Policy",
+                                PolicyDocument = new
+                                    {
+                                        Version = "2012-10-17",
+                                        Statement = new
+                                        {
+                                            Effect = "Allow",
+                                            Resource = lambdaNames.Select(n => new { Ref = n }),
+                                            Action = "lambda:InvokeFunction"
+                                        }
+                                    }
+                            }
+                        }
+                    }
+                }
+            };
+            template.Resources.Add(stateMachineRoleName, stateMachineRole);
 
+            var definition = Describe("${AWS::AccountId}", "${AWS::Region}");
 
-            var validateResult = await cloudFormation.ValidateTemplateAsync(new ValidateTemplateRequest
+            var stateMachineResource = new
+            {
+                Type = "AWS::StepFunctions::StateMachine",
+                Properties = new {
+                    RoleArn = new { Ref = stateMachineRoleName },
+                    DefinitionString = new Dictionary<string, string> { { "Fn::Sub", definition } }
+                }
+
+            };
+
+            template.Resources.Add(stateMachineName, stateMachineResource);
+            
+            var json = JsonConvert.SerializeObject(template, Formatting.Indented);
+
+            Console.Write(json);
+
+            try
+            {
+           var validateResult = await cloudFormation.ValidateTemplateAsync(new ValidateTemplateRequest
             {
                 TemplateBody = json
             });
+            }
+            catch (Exception e) {
+                Console.Write(e.Message);
+            }
+ 
+
+            
 
             return json;
         }
