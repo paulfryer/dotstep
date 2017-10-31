@@ -4,6 +4,7 @@ using DotStep.Core;
 using DotStep.Core.Publish;
 using DotStep.StateMachines;
 using DotStep.StateMachines.CFProxy;
+using DotStep.StateMachines.SimpleCalculator;
 using DotStep.StateMachines.StepFunctionQueue;
 using Newtonsoft.Json;
 using System;
@@ -24,20 +25,18 @@ namespace Tests
 
         public static async Task TestStateMachine3()
         {
-            IStateMachine stateMachine = new CFProxyStateMachine();
+            IStateMachine stateMachine = new SimpleCalculator();
 
             var cft = await stateMachine.BuildCloudFormationTemplate();
            
 
-            var context = new PublishContext
+            var context = new Context
             {
-                Region = "us-west-2",
-                CodeS3Bucket = "code-bucket-here",
-                CodeS3Key = "StepFunctionQueueStateMachine.zip",
-                CodeStateMachineClassName = "StepFunctionQueueStateMachine"
+                Number1 = 19,
+                Number2 = 23
             };
 
-            var engine = new StateMachineEngine<PublishStateMachine, PublishContext>(context);
+            var engine = new StateMachineEngine<SimpleCalculator, Context>(context);
             await engine.Start();
 
         }

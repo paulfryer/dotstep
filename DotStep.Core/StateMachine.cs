@@ -72,14 +72,13 @@ namespace DotStep.Core
 
             foreach (var state in States.Where(s => s is ITaskState))
             {
-                var lambdaName = $"{stateMachineName}{state.Name}";
+                var lambdaName = $"{stateMachineName}-{state.Name}";
                 lambdaNames.Add(lambdaName);
                 var assemblyName = GetType().GetTypeInfo().Assembly.GetName().Name;
                 var namespaceName = GetType().GetTypeInfo().Namespace;
                 
                 var handler = $"{assemblyName}::{namespaceName}.{state.Name}::Execute";
-
-               // var lambdaRoleName = state.GetAttributeValue((ExplicitRole a) => a.RoleName, DefaultLambdaRoleName);
+                
                 var memory = state.GetAttributeValue((FunctionMemory a) => a.Memory, DefaultMemory);
                 var timeout = state.GetAttributeValue((FunctionTimeout a) => a.Timeout, DefaultTimeout);
 
@@ -123,12 +122,13 @@ namespace DotStep.Core
 
   
 
-                var lambdaRoleName = $"{lambdaName}Role";
+                var lambdaRoleName = $"{lambdaName}-Role";
                 var lambdaRole = new
                 {
                     Type = "AWS::IAM::Role",
                     Properties = new
                     {
+                        RoleName = lambdaRoleName,
                         AssumeRolePolicyDocument = new
                         {
                             Version = "2012-10-17",
@@ -144,7 +144,7 @@ namespace DotStep.Core
                         },
                         Policies = new List<dynamic> {
                             new {
-                                PolicyName = $"{lambdaName}Policy",
+                                PolicyName = $"{lambdaName}-Policy",
                                 PolicyDocument = new
                                 {
                                     Version = "2012-10-17",
@@ -160,12 +160,13 @@ namespace DotStep.Core
                     }
                 };
 
-                template.Resources.Add(lambdaRoleName, lambdaRole);
+                template.Resources.Add(lambdaRoleName.Replace("-", string.Empty), lambdaRole);
      
                 var functionResource = new
                 {
                     Type = "AWS::Lambda::Function",
                     Properties = new {
+                        FunctionName = lambdaName,
                         Runtime = Runtime.Dotnetcore10.Value,
                         Handler = handler,
                         Timeout = timeout,
@@ -176,24 +177,25 @@ namespace DotStep.Core
                         },
                         Role = new Dictionary<string, List<string>> {
                             { "Fn::GetAtt", new List<string>{
-                                lambdaRoleName, "Arn"
+                                lambdaRoleName.Replace("-", string.Empty), "Arn"
                             } }
                         }
                     }
                 };
 
-                template.Resources.Add(lambdaName, functionResource);                
+                template.Resources.Add(lambdaName.Replace("-", string.Empty), functionResource);                
 
             }
 
             
 
-            var stateMachineRoleName = $"{stateMachineName}Role";
+            var stateMachineRoleName = $"{stateMachineName}-Role";
             var stateMachineRole = new
             {
                 Type = "AWS::IAM::Role",
                 Properties = new
                 {
+                    RoleName = stateMachineRoleName,
                     AssumeRolePolicyDocument = new
                     {
                         Version = "2012-10-17",
@@ -211,41 +213,41 @@ namespace DotStep.Core
                     },
                     Policies = new List<dynamic> {
                         new {
-                            PolicyName = $"{stateMachineName}Policy",
+                            PolicyName = $"{stateMachineName}-Policy",
                             PolicyDocument = new
                                 {
                                     Version = "2012-10-17",
-                                    Statement = new
-                                    {
-                                        Effect = "Allow",
-                                        Resource = lambdaNames.Select(n =>
-                                            new Dictionary<string, List<string>> {
-                                                {
-                                                    "Fn::GetAtt", new List<string>{
-                                                                        n, "Arn"
-                                                                    }
-                                                }
-                                            }),
-                                        Action = "lambda:InvokeFunction"
+                                    Statement = new List<dynamic> { new
+                                        {
+                                            Effect = "Allow",
+                                            Resource = lambdaNames.Select(lambdaName =>
+                                                new Dictionary<string, List<string>> {
+                                                    {
+                                                        "Fn::GetAtt", new List<string>{
+                                                                            lambdaName.Replace("-", string.Empty), "Arn"
+                                                                        }
+                                                    }
+                                                }),
+                                            Action = "lambda:InvokeFunction"
+                                        }
                                     }
                                 }
                         }
                     }                    
                 }
             };
-            template.Resources.Add(stateMachineRoleName, stateMachineRole);
+            template.Resources.Add(stateMachineRoleName.Replace("-", string.Empty), stateMachineRole);
 
-            var definition = Describe("${AWS::AccountId}", "${AWS::Region}");
+            var definition = Describe("${AWS::Region}", "${AWS::AccountId}");
 
             var stateMachineResource = new
             {
                 Type = "AWS::StepFunctions::StateMachine",
                 Properties = new {
-                    //RoleArn = new { Ref = stateMachineRoleName },
                     DefinitionString = new Dictionary<string, string> { { "Fn::Sub", definition } },
                         RoleArn = new Dictionary<string, List<string>> {
                             { "Fn::GetAtt", new List<string>{
-                                stateMachineRoleName, "Arn"
+                                stateMachineRoleName.Replace("-", string.Empty), "Arn"
                             } }
                         }
                 }
