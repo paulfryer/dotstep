@@ -88,41 +88,33 @@ namespace DotStep.Core
                 var type = assemblyDefinition.MainModule.Types.FirstOrDefault(t => t.Name == state.GetType().Name);
                 var calls = type.Methods.First(x => x.Name == "Execute").Body
                     .Instructions.Where(x => x.OpCode == OpCodes.Call)
-                    .Select(x => x.Operand as dynamic);
+                    .Select(x => x.Operand);
 
                 foreach (var call in calls) {
-                    try
-                    {
+                    if (call.GetType().GetProperty("GenericArguments") != null) {
                         var amazon = new List<string>();
-                        var arguments = call.GenericArguments;
-                        foreach (var field in arguments[0].Fields) {
+                        var arguments = (call as dynamic).GenericArguments;
+                        foreach (var field in arguments[0].Fields)
+                        {
                             string fieldName = field.FieldType.FullName;
                             if (fieldName.StartsWith("Amazon"))
                             {
                                 if (!amazon.Contains(fieldName))
+                                {
                                     amazon.Add(fieldName);
+
+                                    var service = fieldName.Split('.')[1];
+                                    var method = fieldName.Split('.')[3].Replace("Response", string.Empty);
+
+                                    Console.WriteLine($"{service}:{method}");
+                                }
+
                             }
-                        }
-                        
-                        Console.WriteLine("GOT ONE");
+                        }                        
                     }
-                    catch (Exception e) {
-                        Console.WriteLine(e);
-                    }
-                 
                     
                 }
-
-
-                var xx =state.GetType().GetRuntimeProperties();
-
-                foreach (var field in state.GetType().GetFields())
-                {
-                    //System.Reflection.Emit.
-                        
-                     
-                }
-                
+               
 
                 var functionResource = new
                 {
@@ -138,6 +130,8 @@ namespace DotStep.Core
                     }
                 };
             }
+
+            // TODO: Build Role for lambda function, need to implement a lookup table for Service name to IAM service name.
 
             var json = JsonConvert.SerializeObject(resources);
 
