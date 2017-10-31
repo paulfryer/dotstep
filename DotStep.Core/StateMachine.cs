@@ -204,26 +204,33 @@ namespace DotStep.Core
                             {
                                 Service = new Dictionary<string, string> {
                                     { "Fn::Sub", "states.${AWS::Region}.amazonaws.com" }
-                                },
-                                Action = "sts:AssumeRole"
-                            }
-                        },
-                        Policies = new List<dynamic> {
-                            new {
-                                PolicyName = $"{stateMachineName}Policy",
-                                PolicyDocument = new
-                                    {
-                                        Version = "2012-10-17",
-                                        Statement = new
-                                        {
-                                            Effect = "Allow",
-                                            Resource = lambdaNames.Select(n => new { Ref = n }),
-                                            Action = "lambda:InvokeFunction"
-                                        }
-                                    }
-                            }
+                                }
+                            },
+                            Action = "sts:AssumeRole"
                         }
-                    }
+                    },
+                    Policies = new List<dynamic> {
+                        new {
+                            PolicyName = $"{stateMachineName}Policy",
+                            PolicyDocument = new
+                                {
+                                    Version = "2012-10-17",
+                                    Statement = new
+                                    {
+                                        Effect = "Allow",
+                                        Resource = lambdaNames.Select(n =>
+                                            new Dictionary<string, List<string>> {
+                                                {
+                                                    "Fn::GetAtt", new List<string>{
+                                                                        n, "Arn"
+                                                                    }
+                                                }
+                                            }),
+                                        Action = "lambda:InvokeFunction"
+                                    }
+                                }
+                        }
+                    }                    
                 }
             };
             template.Resources.Add(stateMachineRoleName, stateMachineRole);
@@ -234,8 +241,13 @@ namespace DotStep.Core
             {
                 Type = "AWS::StepFunctions::StateMachine",
                 Properties = new {
-                    RoleArn = new { Ref = stateMachineRoleName },
-                    DefinitionString = new Dictionary<string, string> { { "Fn::Sub", definition } }
+                    //RoleArn = new { Ref = stateMachineRoleName },
+                    DefinitionString = new Dictionary<string, string> { { "Fn::Sub", definition } },
+                        RoleArn = new Dictionary<string, List<string>> {
+                            { "Fn::GetAtt", new List<string>{
+                                stateMachineRoleName, "Arn"
+                            } }
+                        }
                 }
 
             };
