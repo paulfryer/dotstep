@@ -105,6 +105,7 @@ namespace DotStep.StateMachines.StepFunctionQueue
 
     public sealed class Wait : WaitState<GetQueueStats> { public override int Seconds => 30; };
 
+    
     public sealed class StartStepFunctions : TaskState<SFQueueContext, Wait>
     {
         IAmazonStepFunctions stepFunctions = new AmazonStepFunctionsClient();

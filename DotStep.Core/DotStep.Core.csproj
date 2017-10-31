@@ -34,6 +34,9 @@ Add topics
       <Version>3.3.11.4</Version>
     </PackageReference>
     <PackageReference Include="AWSSDK.StepFunctions" Version="3.3.0.18" />
+    <PackageReference Include="Mono.Cecil">
+      <Version>0.10.0-beta6</Version>
+    </PackageReference>
     <PackageReference Include="Newtonsoft.Json">
       <Version>9.0.1</Version>
     </PackageReference>

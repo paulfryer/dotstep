@@ -9,6 +9,8 @@ namespace DotStep.Core
         Type StartAt { get; }
         string Describe(string region, string accountId);
         Task PublishAsync(AWSCredentials awsCredentials, string region, string accountId);
+
+        Task<string> BuildCloudFormationTemplate();
     }
 
 }

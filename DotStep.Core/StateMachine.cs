@@ -5,6 +5,8 @@ using Amazon.Lambda.Model;
 using Amazon.Runtime;
 using Amazon.StepFunctions;
 using Amazon.StepFunctions.Model;
+using Mono.Cecil;
+using Mono.Cecil.Cil;
 using Newtonsoft.Json;
 using System;
 using System.Collections;
@@ -50,12 +52,92 @@ namespace DotStep.Core
         {
             IAmazonCloudFormation cloudFormation = new AmazonCloudFormationClient();
 
-    
-
+            var statMachineName = GetType().Name;
             var resources = new List<dynamic>();
 
+            foreach (var state in States.Where(s => s is ITaskState))
+            {
+                var lambdaName = $"{statMachineName}-{state.Name}";
+
+                var assemblyName = GetType().GetTypeInfo().Assembly.GetName().Name;
+                var namespaceName = GetType().GetTypeInfo().Namespace;
+
+                var assembly = Assembly.Load(new AssemblyName(assemblyName));
+
+                var handler = $"{assemblyName}::{namespaceName}.{state.Name}::Execute";
+
+                var lambdaRoleName = state.GetAttributeValue((ExplicitRole a) => a.RoleName, DefaultLambdaRoleName);
+                var memory = state.GetAttributeValue((FunctionMemory a) => a.Memory, DefaultMemory);
+                var timeout = state.GetAttributeValue((FunctionTimeout a) => a.Timeout, DefaultTimeout);
+
+                //var x= new System.Reflection.Emit.DynamicMethod("", null, null);
+                //var g = x.GetILGenerator();
 
 
+
+
+                var callAssemblyName = typeof(IAmazonStepFunctions).GetTypeInfo().Assembly.GetName().Name;
+
+                var callAssembly = AssemblyDefinition.ReadAssembly(
+                    Assembly.Load(new AssemblyName(callAssemblyName)).Location);
+                var callMethod = (MethodDefinition)callAssembly.MainModule.Types.First(t => t.Name == "IAmazonStepFunctions")
+                    .Methods.First(m => m.Name == "ListStateMachinesAsync");
+
+
+                var assemblyDefinition = AssemblyDefinition.ReadAssembly(assembly.Location);
+                var type = assemblyDefinition.MainModule.Types.FirstOrDefault(t => t.Name == state.GetType().Name);
+                var calls = type.Methods.First(x => x.Name == "Execute").Body
+                    .Instructions.Where(x => x.OpCode == OpCodes.Call)
+                    .Select(x => x.Operand as dynamic);
+
+                foreach (var call in calls) {
+                    try
+                    {
+                        var amazon = new List<string>();
+                        var arguments = call.GenericArguments;
+                        foreach (var field in arguments[0].Fields) {
+                            string fieldName = field.FieldType.FullName;
+                            if (fieldName.StartsWith("Amazon"))
+                            {
+                                if (!amazon.Contains(fieldName))
+                                    amazon.Add(fieldName);
+                            }
+                        }
+                        
+                        Console.WriteLine("GOT ONE");
+                    }
+                    catch (Exception e) {
+                        Console.WriteLine(e);
+                    }
+                 
+                    
+                }
+
+
+                var xx =state.GetType().GetRuntimeProperties();
+
+                foreach (var field in state.GetType().GetFields())
+                {
+                    //System.Reflection.Emit.
+                        
+                     
+                }
+                
+
+                var functionResource = new
+                {
+                    Runtime = Runtime.Dotnetcore10,
+                    FunctionName = lambdaName,
+                    Handler = handler,
+                    //Role = $"arn:aws:iam::{accountId}:role/{lambdaRoleName}",
+                    Timeout = timeout,
+                    MemorySize = memory,
+                    Code = new FunctionCode
+                    {
+                        
+                    }
+                };
+            }
 
             var json = JsonConvert.SerializeObject(resources);
 
