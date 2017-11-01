@@ -16,6 +16,9 @@
 
   <ItemGroup>
     <PackageReference Include="AWSSDK.CertificateManager" Version="3.3.2.14" />
+    <PackageReference Include="AWSSDK.CloudFormation">
+      <Version>3.3.8.2</Version>
+    </PackageReference>
     <PackageReference Include="AWSSDK.CloudFront" Version="3.3.5" />
     <PackageReference Include="AWSSDK.IdentityManagement">
       <Version>3.3.5.2</Version>

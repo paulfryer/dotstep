@@ -24,9 +24,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="DotStep.Core">
-      <Version>1.0.4</Version>
-    </PackageReference>
     <PackageReference Include="Mono.Cecil">
       <Version>0.10.0-beta6</Version>
       <IncludeAssets></IncludeAssets>
@@ -34,6 +31,10 @@
     <PackageReference Include="Newtonsoft.Json">
       <Version>9.0.1</Version>
     </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\DotStep.Core\DotStep.Core.csproj" />
   </ItemGroup>
 
 

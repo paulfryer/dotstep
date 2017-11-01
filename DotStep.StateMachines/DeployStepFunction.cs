@@ -1,4 +1,6 @@
-﻿using Amazon.IdentityManagement;
+﻿using Amazon.CloudFormation;
+using Amazon.CloudFormation.Model;
+using Amazon.IdentityManagement;
 using Amazon.IdentityManagement.Model;
 using Amazon.S3;
 using Amazon.S3.Model;
@@ -57,11 +59,11 @@ namespace DotStep.StateMachines.StepFunctionDeployment
             {
                 var path = Path.Combine(Directory.GetCurrentDirectory(), assemblyFileName);
                 var assemblyName = System.Runtime.Loader.AssemblyLoadContext.GetAssemblyName(path);
-                
+
                 var assembly = Assembly.Load(assemblyName);
                 var stateMachineTypes = assembly.GetTypes()
-                    .Where(t => typeof(IStateMachine).IsAssignableFrom(t) && 
-                            t.GetTypeInfo().IsClass && 
+                    .Where(t => typeof(IStateMachine).IsAssignableFrom(t) &&
+                            t.GetTypeInfo().IsClass &&
                             !t.GetTypeInfo().IsAbstract)
                     .Select(t => t.FullName);
 
@@ -86,7 +88,7 @@ namespace DotStep.StateMachines.StepFunctionDeployment
     public sealed class DeployStateMachine : TaskState<Context, CheckForStateMachines>
     {
         IAmazonS3 s3 = new AmazonS3Client();
-        
+        IAmazonCloudFormation cloudFormation = new AmazonCloudFormationClient();
 
         public override async Task<Context> Execute(Context context)
         {
@@ -103,22 +105,98 @@ namespace DotStep.StateMachines.StepFunctionDeployment
 
             var assemblies = await getObjectResult.GetAssemblyNames(context);
 
-            foreach (var assemblyFileName in assemblies) {
-                if (assemblyFileName == assemblyNameOfInterest) {
+            foreach (var assemblyFileName in assemblies)
+            {
+                if (assemblyFileName == assemblyNameOfInterest)
+                {
 
                     var path = Path.Combine(Directory.GetCurrentDirectory(), assemblyFileName);
                     var assemblyName = System.Runtime.Loader.AssemblyLoadContext.GetAssemblyName(path);
 
                     var assembly = Assembly.Load(assemblyName);
 
-                    
-                        var stateMachineType = assembly.GetTypes()
-                                .Where(t => t.FullName == stateMachineFullName)
-                                .Single();
-              
-                    var template = DotStepBuilder.BuildCloudFormationTemplate(stateMachineType);
-                   
 
+                    var stateMachineType = assembly.GetTypes()
+                            .Where(t => t.FullName == stateMachineFullName)
+                            .Single();
+
+                    var template = DotStepBuilder.BuildCloudFormationTemplate(stateMachineType);
+
+
+
+                    var validationResult = await cloudFormation.ValidateTemplateAsync(new ValidateTemplateRequest
+                    {
+                        TemplateBody = template
+                    });
+
+                    var stateMachineName = stateMachineType.GetTypeInfo().Name;
+
+                    var listResult = await cloudFormation.ListStacksAsync(new ListStacksRequest
+                    {
+                        StackStatusFilter = new List<string> { "CREATE_COMPLETE", "UPDATE_COMPLETE" }
+                    });
+
+                    var stackExists = false;
+
+                    foreach (var stack in listResult.StackSummaries)
+                    {
+                        if (stack.StackName == stateMachineName)
+                        {
+                            var changeSetName = stateMachineName + "-" + DateTime.UtcNow.Ticks;
+
+                            var changeSetResult = await cloudFormation.CreateChangeSetAsync(new CreateChangeSetRequest
+                            {
+                                Parameters = new List<Parameter> {
+                                new Parameter{
+                                    ParameterKey = "CodeS3Bucket",
+                                    ParameterValue = context.CodeS3Bucket
+                                },
+                                new Parameter{
+                                    ParameterKey = "CodeS3Key",
+                                    ParameterValue = context.CodeS3Key
+                                }
+                                },
+                                StackName = stateMachineName,
+                                TemplateBody = template,
+                                ChangeSetName = changeSetName,
+                                ChangeSetType = ChangeSetType.UPDATE,
+                                UsePreviousTemplate = false,
+                                Capabilities = new List<string> {
+                                    "CAPABILITY_NAMED_IAM"
+                                }
+                            });
+
+                            var executeResult = await cloudFormation.ExecuteChangeSetAsync(new ExecuteChangeSetRequest
+                            {
+                                ChangeSetName = changeSetName,
+                                StackName = stateMachineName
+                            });
+
+                            stackExists = true;
+                        }
+                    }
+
+                    if (!stackExists)
+                    {
+                        var createResult = await cloudFormation.CreateStackAsync(new CreateStackRequest
+                        {
+                            Capabilities = new List<string> {
+                                "CAPABILITY_NAMED_IAM"
+                            },
+                            StackName = stateMachineName,
+                            TemplateBody = template,
+                            Parameters = new List<Parameter> {
+                                new Parameter{
+                                    ParameterKey = "CodeS3Bucket",
+                                    ParameterValue = context.CodeS3Bucket
+                                },
+                                new Parameter{
+                                    ParameterKey = "CodeS3Key",
+                                    ParameterValue = context.CodeS3Key
+                                }
+                            }
+                        });
+                    }
                 }
             }
 
@@ -127,7 +205,7 @@ namespace DotStep.StateMachines.StepFunctionDeployment
             return context;
         }
     }
-    
+
     public sealed class Done : PassState
     {
         public override bool End => true;
@@ -141,13 +219,13 @@ namespace DotStep.StateMachines.StepFunctionDeployment
             var codeDirectory = Path.GetDirectoryName(Assembly.GetEntryAssembly().CodeBase);
             codeDirectory = codeDirectory.Replace("file:\\", string.Empty);
             var extractDirectory = codeDirectory + "\\extract";
-            
+
 
             var zipFile = $"{context.CodeS3Key}.zip";
 
             if (File.Exists(zipFile))
                 File.Delete(zipFile);
-            
+
             await getObjectResponse.WriteResponseStreamToFileAsync(zipFile, false, CancellationToken.None);
 
             if (Directory.Exists(extractDirectory))
