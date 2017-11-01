@@ -23,7 +23,7 @@ namespace DotStep.Core
         public static string BuildCloudFormationTemplate(Type stateMachineType)
         {
             var stateMachine = Activator.CreateInstance(stateMachineType) as IStateMachine;
-            var stateMachineName = stateMachineType.GetType().Name;
+            var stateMachineName = stateMachine.GetType().Name;
 
             var template = new
             {
@@ -489,8 +489,8 @@ public class DotStepUtil
                 {"ServiceCatalog", "servicecatalog"},
                 {"SimpleEmailService", "ses"},
                 {"SimpleNotificationService", "sns"},
-                {"SimpleQueueService", "sqs"},
-                {"SimpleStorageService", "s3"},
+                {"SQS", "sqs"},
+                {"S3", "s3"},
                 {"SimpleWorkflowService", "swf"},
                 {"SimpleDB", "sdb"},
                 {"StepFunctions", "states"},

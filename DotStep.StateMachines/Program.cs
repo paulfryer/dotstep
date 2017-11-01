@@ -21,8 +21,8 @@ namespace DotStep.StateMachines
 
             var context = new Context
             {
-                CodeS3Bucket = "broxy-code",
-                CodeS3Key = "H0jfXvX"
+                CodeS3Bucket = "dotstep",
+                CodeS3Key = "StepFunctions.zip"
             };
 
             var engine = new StateMachineEngine<StepFunctionDeployer, Context>(context);
