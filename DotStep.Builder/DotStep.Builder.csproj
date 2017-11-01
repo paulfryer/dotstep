@@ -29,6 +29,7 @@
     </PackageReference>
     <PackageReference Include="Mono.Cecil">
       <Version>0.10.0-beta6</Version>
+      <IncludeAssets></IncludeAssets>
     </PackageReference>
     <PackageReference Include="Newtonsoft.Json">
       <Version>9.0.1</Version>

@@ -9,15 +9,20 @@ using System.Reflection;
 namespace DotStep.Core
 {
 
-    public static class DotStepBuilder 
+    public static class DotStepBuilder
     {
         public const int DefaultTimeout = 30;
         public const int DefaultMemory = 128;
-
-        public static string BuildCloudFormationResources<TStateMachine>() where TStateMachine : IStateMachine
+        
+        public static string BuildCloudFormationTemplate<TStateMachine>() where TStateMachine : IStateMachine
         {
             var stateMachineType = typeof(TStateMachine);
-            var stateMachine = Activator.CreateInstance<TStateMachine>() as IStateMachine;
+            return BuildCloudFormationTemplate(stateMachineType);
+        }
+
+        public static string BuildCloudFormationTemplate(Type stateMachineType)
+        {
+            var stateMachine = Activator.CreateInstance(stateMachineType) as IStateMachine;
             var stateMachineName = stateMachineType.GetType().Name;
 
             var template = new
