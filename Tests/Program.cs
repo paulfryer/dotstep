@@ -1,7 +1,6 @@
 ﻿using Amazon;
 using Amazon.Runtime;
 using DotStep.Core;
-using DotStep.Core.Publish;
 using DotStep.StateMachines;
 using DotStep.StateMachines.CFProxy;
 using DotStep.StateMachines.SimpleCalculator;
@@ -19,27 +18,11 @@ namespace Tests
 
         static void Main(string[] args)
         {
-            TestStateMachine3();
+           // TestStateMachine3();
             Console.ReadKey();
         }
 
-        public static async Task TestStateMachine3()
-        {
-            IStateMachine stateMachine = new CFProxyStateMachine();
-
-            var cft = await stateMachine.BuildCloudFormationResources();
-           
-
-            var context = new Context
-            {
-                Number1 = 19,
-                Number2 = 23
-            };
-
-            var engine = new StateMachineEngine<SimpleCalculator, Context>(context);
-            await engine.Start();
-
-        }
+  
 
         public static async Task TestStateMachine2()
         {

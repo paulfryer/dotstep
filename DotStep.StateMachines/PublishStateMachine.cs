@@ -4,6 +4,7 @@ using Amazon.S3;
 using Amazon.S3.Model;
 using Amazon.StepFunctions;
 using Amazon.StepFunctions.Model;
+using DotStep.Core;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -15,7 +16,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace DotStep.Core.Publish
+namespace DotStep.StateMachines.Publish
 {
 
     public sealed class PublishStateMachine : StateMachine<InitializeContext>

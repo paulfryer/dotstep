@@ -6,29 +6,34 @@
     <ApplicationIcon />
     <OutputTypeEx>library</OutputTypeEx>
     <StartupObject />
-    <AssemblyName>DotStep.Core</AssemblyName>
-    <RootNamespace>DotStep.Core</RootNamespace>
-    <Version>1.0.4</Version>
-    <PackageId>DotStep.Core</PackageId>
+    <AssemblyName>DotStep.Builder</AssemblyName>
+    <RootNamespace>DotStep.Builder</RootNamespace>
+    <Version>1.0.3</Version>
+    <PackageId>DotStep.Builder</PackageId>
     <Authors>Paul Fryer</Authors>
     <Company />
     <Product />
-    <Description>Library for creating AWS Step Functions using a code first approach. Edit
-Add topics
+    <Description>Utility for building cloud formation templates from DotCore framework.
 </Description>
     <PackageProjectUrl>https://github.com/paulfryer/dotstep</PackageProjectUrl>
     <PackageTags>AWS StepFunctions DotNet</PackageTags>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Amazon.Lambda.Core" Version="1.0.0" />
-    <PackageReference Include="Amazon.Lambda.Serialization.Json" Version="1.1.0" />
+    <None Remove="DotStepBuilder.cs.txt" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="DotStep.Core">
+      <Version>1.0.4</Version>
+    </PackageReference>
+    <PackageReference Include="Mono.Cecil">
+      <Version>0.10.0-beta6</Version>
+    </PackageReference>
     <PackageReference Include="Newtonsoft.Json">
       <Version>9.0.1</Version>
     </PackageReference>
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Properties\" />
-  </ItemGroup>
+
 </Project>

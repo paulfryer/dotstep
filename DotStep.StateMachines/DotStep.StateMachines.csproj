@@ -21,8 +21,17 @@
       <Version>3.3.5.2</Version>
     </PackageReference>
     <PackageReference Include="AWSSDK.Route53" Version="3.3.8" />
+    <PackageReference Include="AWSSDK.S3">
+      <Version>3.3.11.4</Version>
+    </PackageReference>
+    <PackageReference Include="AWSSDK.StepFunctions">
+      <Version>3.3.0.20</Version>
+    </PackageReference>
     <PackageReference Include="Newtonsoft.Json" Version="9.0.1" />
     <PackageReference Include="AWSSDK.SQS" Version="3.3.3.1" />
+    <PackageReference Include="System.Runtime.Loader">
+      <Version>4.3.0</Version>
+    </PackageReference>
   </ItemGroup>
 
   <ItemGroup>
