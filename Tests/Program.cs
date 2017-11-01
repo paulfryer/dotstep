@@ -25,9 +25,9 @@ namespace Tests
 
         public static async Task TestStateMachine3()
         {
-            IStateMachine stateMachine = new SimpleCalculator();
+            IStateMachine stateMachine = new CFProxyStateMachine();
 
-            var cft = await stateMachine.BuildCloudFormationTemplate();
+            var cft = await stateMachine.BuildCloudFormationResources();
            
 
             var context = new Context

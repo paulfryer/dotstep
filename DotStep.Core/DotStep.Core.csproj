@@ -44,4 +44,8 @@ Add topics
       <Version>4.3.0</Version>
     </PackageReference>
   </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Properties\" />
+  </ItemGroup>
 </Project>

@@ -48,7 +48,7 @@ namespace DotStep.Core
 
 
 
-        public async Task<string> BuildCloudFormationTemplate()
+        public async Task<string> BuildCloudFormationResources()
         {
             IAmazonCloudFormation cloudFormation = new AmazonCloudFormationClient();
 
@@ -142,8 +142,18 @@ namespace DotStep.Core
                                 Action = "sts:AssumeRole"
                             }
                         },
-                        Policies = new List<dynamic> {
-                            new {
+                        ManagedPolicyArns = new List<string> {
+                            "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+                        },
+                        Policies = new List<dynamic>()
+                    }
+                };
+
+                if (actions.Any())
+                {
+                    lambdaRole.Properties.Policies.Add(
+                            new
+                            {
                                 PolicyName = $"{lambdaName}-Policy",
                                 PolicyDocument = new
                                 {
@@ -152,13 +162,12 @@ namespace DotStep.Core
                                     {
                                         Effect = actions.Any() ? "Allow" : "Deny",
                                         Resource = "*",
-                                        Action = actions.Any() ? actions : new List<string>{"*" }
+                                        Action = actions.Any() ? actions : new List<string> { "*" }
                                     }
                                 }
                             }
-                        }
-                    }
-                };
+                        );
+                }
 
                 template.Resources.Add(lambdaRoleName.Replace("-", string.Empty), lambdaRole);
      
@@ -271,9 +280,6 @@ namespace DotStep.Core
                 Console.Write(e.Message);
             }
  
-
-            
-
             return json;
         }
 

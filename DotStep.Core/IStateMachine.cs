@@ -10,7 +10,7 @@ namespace DotStep.Core
         string Describe(string region, string accountId);
         Task PublishAsync(AWSCredentials awsCredentials, string region, string accountId);
 
-        Task<string> BuildCloudFormationTemplate();
+        Task<string> BuildCloudFormationResources();
     }
 
 }
