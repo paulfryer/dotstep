@@ -11,11 +11,11 @@ namespace DotStep.StateMachines.SimpleCalculator
         public int Product { get; internal set; }
     }
 
-    public sealed class SimpleCalculator//: StateMachine<AddNumbers>
+    public sealed class SimpleCalculator: StateMachine<AddNumbers>
     {
     }
 
-    public sealed class AddNumbers : TaskState<Context, Done>
+    public sealed class AddNumbers : TaskState<Context, Wait>
     {
         public override async Task<Context> Execute(Context context)
         {
@@ -23,7 +23,12 @@ namespace DotStep.StateMachines.SimpleCalculator
             return context;
         }
     }
-   
+
+    public sealed class Wait : WaitState<Done>
+    {
+        public override int Seconds => 10;
+    }
+
     public sealed class Done : PassState {
         public override bool End => true;
     }
