@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 using DotStep.Core;
 
 namespace DotStep.StateMachines.SimpleCalculator
@@ -15,11 +16,31 @@ namespace DotStep.StateMachines.SimpleCalculator
     {
     }
 
-    public sealed class AddNumbers : TaskState<Context, Wait>
+    public sealed class AddNumbers : TaskState<Context, DetermineNextStep>
     {
         public override async Task<Context> Execute(Context context)
         {
             context.Product = context.Number1 + context.Number2;   
+            return context;
+        }
+    }
+
+    public sealed class DetermineNextStep : ChoiceState<Wait>
+    {
+        public override List<Choice> Choices {
+            get{
+                return new List<Choice>{
+                    new Choice<SubtractNumbers, Context>(c => c.Product > 100)
+                };
+            }
+        }
+    }
+
+    public sealed class SubtractNumbers : TaskState<Context, Done>
+    {
+        public override async Task<Context> Execute(Context context)
+        {
+            context.Product = context.Number1 - context.Number2;
             return context;
         }
     }

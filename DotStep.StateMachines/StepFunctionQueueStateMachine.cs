@@ -12,7 +12,7 @@ using Amazon.IdentityManagement.Model;
 
 namespace DotStep.StateMachines.StepFunctionQueue
 {    
-    public sealed class StepFunctionQueueStateMachine //: StateMachine<InitializeContext>
+    public sealed class StepFunctionQueueStateMachine : StateMachine<InitializeContext>
     {
     }
 

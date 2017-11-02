@@ -90,8 +90,15 @@ namespace DotStep.StateMachines.StepFunctionDeployment
     [Core.Action(ActionName = "iam:PutRolePolicy")]
     [Core.Action(ActionName = "iam:PassRole")]
     [Core.Action(ActionName = "iam:GetRole")]
+    [Core.Action(ActionName = "iam:DeleteRolePolicy")]
+    [Core.Action(ActionName = "iam:DetachRolePolicy")]
+    [Core.Action(ActionName = "iam:CreateRole")]
     [Core.Action(ActionName = "states:CreateStateMachine")]
     [Core.Action(ActionName = "states:DeleteStateMachine")]
+    [Core.Action(ActionName = "lambda:GetFunctionConfiguration")]
+    [Core.Action(ActionName = "lambda:UpdateFunctionCode")]
+    [Core.Action(ActionName = "lambda:DeleteFunction")]
+    [FunctionTimeout(Timeout = 120)]
     public sealed class DeployStateMachine : TaskState<Context, CheckForStateMachines>
     {
         IAmazonS3 s3 = new AmazonS3Client();
@@ -132,6 +139,7 @@ namespace DotStep.StateMachines.StepFunctionDeployment
                             .Where(t => t.FullName == stateMachineFullName)
                             .Single();
 
+                    Console.WriteLine($"Working with state machine type: {stateMachineType}");
                     Console.WriteLine("Building cloud formation template.");
                     var template = DotStepBuilder.BuildCloudFormationTemplate(stateMachineType);
                     
@@ -145,7 +153,11 @@ namespace DotStep.StateMachines.StepFunctionDeployment
 
                     var listResult = await cloudFormation.ListStacksAsync(new ListStacksRequest
                     {
-                        StackStatusFilter = new List<string> { "CREATE_COMPLETE", "UPDATE_COMPLETE" }
+                        StackStatusFilter = new List<string> { 
+                            "CREATE_COMPLETE", 
+                            "ROLLBACK_COMPLETE", 
+                            "UPDATE_COMPLETE", 
+                            "UPDATE_ROLLBACK_COMPLETE" }
                     });
 
                     var stackExists = false;
@@ -154,6 +166,8 @@ namespace DotStep.StateMachines.StepFunctionDeployment
                     {
                         if (stack.StackName == stateMachineName)
                         {
+                            stackExists = true;
+
                             var changeSetName = stateMachineName + "-" + DateTime.UtcNow.Ticks;
 
                             var changeSetResult = await cloudFormation.CreateChangeSetAsync(new CreateChangeSetRequest
@@ -185,12 +199,19 @@ namespace DotStep.StateMachines.StepFunctionDeployment
                                     StackName = stateMachineName
                                 });
 
-                                if (changeSetDescriptionTask.Status != "CREATE_PENDING")                                
-                                    goto ExecuteChangeSet;                                
-                                else await Task.Delay(TimeSpan.FromSeconds(6));
+                                switch (changeSetDescriptionTask.Status){
+                                    case "FAILED":
+                                        Console.WriteLine($"Change set failed: {changeSetDescriptionTask.ChangeSetName}. {changeSetDescriptionTask.StatusReason}");
+                                        goto ChangeSetFailed;
+                                    case "CREATE_COMPLETE":
+                                        goto ExecuteChangeSet;
+                                    default:
+                                        await Task.Delay(TimeSpan.FromSeconds(6));
+                                        break;
+                                }
                             }
 
-                            ExecuteChangeSet:
+                        ExecuteChangeSet:
 
                             var executeResult = await cloudFormation.ExecuteChangeSetAsync(new ExecuteChangeSetRequest
                             {
@@ -198,7 +219,9 @@ namespace DotStep.StateMachines.StepFunctionDeployment
                                 StackName = stateMachineName
                             });
 
-                            stackExists = true;
+                        ChangeSetFailed:
+                            Console.Write("Change set failed.");
+
                         }
                     }
 

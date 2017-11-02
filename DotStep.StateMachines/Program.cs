@@ -31,8 +31,8 @@ namespace DotStep.StateMachines
 
             var context = new Context
             {
-                CodeS3Bucket = "dotstep",
-                CodeS3Key = "StepFunctions.zip"
+                CodeS3Bucket = "code-build-output",
+                CodeS3Key = "Archive7.zip"
             };
 
             var engine = new StateMachineEngine<StepFunctionDeployer, Context>(context);
