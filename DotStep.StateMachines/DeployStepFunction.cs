@@ -30,8 +30,8 @@ namespace DotStep.StateMachines.StepFunctionDeployment
         public string CodeS3Bucket { get; set; }
         public string CodeS3Key { get; set; }
 
-        public Dictionary<string, string> StateMachinesToDeploy { get; internal set; }
-        public int StateMachinesLeftToDeploy { get; internal set; }
+        public List<string> StateMachinesToDeploy { get; set; }
+        public int StateMachinesLeftToDeploy { get; set; }
     }
 
     public sealed class GetStateMachinesToDeploy : TaskState<Context, CheckForStateMachines>
@@ -45,13 +45,15 @@ namespace DotStep.StateMachines.StepFunctionDeployment
             if (string.IsNullOrEmpty(context.CodeS3Key))
                 throw new Exception("CodeS3Key is required.");
 
-            context.StateMachinesToDeploy = new Dictionary<string, string>();
+            context.StateMachinesToDeploy = new List<string>();
 
             var getObjectResult = await s3.GetObjectAsync(new GetObjectRequest
             {
                 BucketName = context.CodeS3Bucket,
                 Key = context.CodeS3Key
             });
+
+            Console.WriteLine($"Downloaded zip code, result: {getObjectResult.HttpStatusCode}");
 
             var assemblies = await getObjectResult.GetAssemblyNames(context);
 
@@ -68,7 +70,7 @@ namespace DotStep.StateMachines.StepFunctionDeployment
                     .Select(t => t.FullName);
 
                 foreach (var stateMachineType in stateMachineTypes)
-                    context.StateMachinesToDeploy.Add(stateMachineType, assemblyFileName);
+                    context.StateMachinesToDeploy.Add(stateMachineType + "|" + assemblyFileName);
             }
 
             context.StateMachinesLeftToDeploy = context.StateMachinesToDeploy.Count();
@@ -84,7 +86,11 @@ namespace DotStep.StateMachines.StepFunctionDeployment
         };
     }
 
-
+    [Core.Action(ActionName = "iam:PutRolePolicy")]
+    [Core.Action(ActionName = "iam:PassRole")]
+    [Core.Action(ActionName = "iam:GetRole")]
+    [Core.Action(ActionName = "states:CreateStateMachine")]
+    [Core.Action(ActionName = "states:DeleteStateMachine")]
     public sealed class DeployStateMachine : TaskState<Context, CheckForStateMachines>
     {
         IAmazonS3 s3 = new AmazonS3Client();
@@ -92,38 +98,44 @@ namespace DotStep.StateMachines.StepFunctionDeployment
 
         public override async Task<Context> Execute(Context context)
         {
+            Console.Write("Context: " + JsonConvert.SerializeObject(context));
+
             var entry = context.StateMachinesToDeploy.First();
-            context.StateMachinesToDeploy.Remove(entry.Key);
-            var assemblyNameOfInterest = entry.Value;
-            var stateMachineFullName = entry.Key;
+            context.StateMachinesToDeploy.Remove(entry);
+            var assemblyNameOfInterest = entry.Split('|')[1];
+            var stateMachineFullName = entry.Split('|')[0];
 
             var getObjectResult = await s3.GetObjectAsync(new GetObjectRequest
             {
                 BucketName = context.CodeS3Bucket,
                 Key = context.CodeS3Key
             });
-
+            
+            Console.WriteLine($"Downloaded zip code, result: {getObjectResult.HttpStatusCode}");
+            
             var assemblies = await getObjectResult.GetAssemblyNames(context);
 
             foreach (var assemblyFileName in assemblies)
             {
                 if (assemblyFileName == assemblyNameOfInterest)
                 {
+                    Console.WriteLine($"Working with assembly: {assemblyFileName}");
+                    //var path = Path.Combine(Directory.GetCurrentDirectory(), assemblyFileName);
+                    //var assemblyName = System.Runtime.Loader.AssemblyLoadContext.GetAssemblyName(path);
+                    var assemblyName = System.Runtime.Loader.AssemblyLoadContext.GetAssemblyName(assemblyFileName);
 
-                    var path = Path.Combine(Directory.GetCurrentDirectory(), assemblyFileName);
-                    var assemblyName = System.Runtime.Loader.AssemblyLoadContext.GetAssemblyName(path);
-
+                    Console.WriteLine("About to try to load assembly by name..");
                     var assembly = Assembly.Load(assemblyName);
 
-
+                    Console.WriteLine("Searching for statemachine...");
                     var stateMachineType = assembly.GetTypes()
                             .Where(t => t.FullName == stateMachineFullName)
                             .Single();
 
+                    Console.WriteLine("Building cloud formation template.");
                     var template = DotStepBuilder.BuildCloudFormationTemplate(stateMachineType);
-
-
-
+                    
+                    Console.WriteLine("Validating template..");
                     var validationResult = await cloudFormation.ValidateTemplateAsync(new ValidateTemplateRequest
                     {
                         TemplateBody = template
@@ -165,6 +177,20 @@ namespace DotStep.StateMachines.StepFunctionDeployment
                                     "CAPABILITY_NAMED_IAM"
                                 }
                             });
+
+                            for (int i = 0; i < 10; i++) {
+                                var changeSetDescriptionTask = await cloudFormation.DescribeChangeSetAsync(new DescribeChangeSetRequest
+                                {
+                                    ChangeSetName = changeSetName,
+                                    StackName = stateMachineName
+                                });
+
+                                if (changeSetDescriptionTask.Status != "CREATE_PENDING")                                
+                                    goto ExecuteChangeSet;                                
+                                else await Task.Delay(TimeSpan.FromSeconds(6));
+                            }
+
+                            ExecuteChangeSet:
 
                             var executeResult = await cloudFormation.ExecuteChangeSetAsync(new ExecuteChangeSetRequest
                             {
@@ -216,12 +242,24 @@ namespace DotStep.StateMachines.StepFunctionDeployment
         public static async Task<IEnumerable<string>> GetAssemblyNames(this GetObjectResponse getObjectResponse, Context context)
         {
 
-            var codeDirectory = Path.GetDirectoryName(Assembly.GetEntryAssembly().CodeBase);
+            //var codeDirectory = Path.GetDirectoryName(Assembly.GetEntryAssembly().CodeBase);
+
+            Console.WriteLine($"Current dir: {Directory.GetCurrentDirectory()}");
+            //Console.WriteLine($"Path: {}");
+            //var codeDirectory = (new FileInfo(Assembly.GetEntryAssembly().Location)).DirectoryName;
+
+
+
+
+            var codeDirectory = "/tmp";// System.IO.Path.GetDirectoryName(typeof(Program).GetTypeInfo().Assembly.Location);
+
+
+
             codeDirectory = codeDirectory.Replace("file:\\", string.Empty);
-            var extractDirectory = codeDirectory + "\\extract";
+            var extractDirectory = codeDirectory + "/extract";
+            Console.WriteLine($"extractDirectory: {extractDirectory}");
 
-
-            var zipFile = $"{context.CodeS3Key}.zip";
+            var zipFile = $"/tmp/{context.CodeS3Key}.zip";
 
             if (File.Exists(zipFile))
                 File.Delete(zipFile);
@@ -230,18 +268,23 @@ namespace DotStep.StateMachines.StepFunctionDeployment
 
             if (Directory.Exists(extractDirectory))
                 Directory.Delete(extractDirectory, true);
-
+            Console.WriteLine("About to unzip the file..");
             using (var zip = ZipFile.OpenRead(zipFile))
                 zip.ExtractToDirectory(extractDirectory);
 
+            
             foreach (var file in Directory.EnumerateFiles(extractDirectory))
             {
-                var destination = file.Replace("\\extract", string.Empty);
+                var destination = file.Replace("/extract", string.Empty);
+                destination = destination.Replace("\\", "/");
                 if (file.EndsWith(".dll") && !File.Exists(destination))
                     File.Copy(file, destination);
             }
+            
 
             return Directory.EnumerateFiles(extractDirectory).Where(f => f.EndsWith(".dll"));
+
+  
         }
     }
 }

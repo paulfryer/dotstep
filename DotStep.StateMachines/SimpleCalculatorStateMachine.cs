@@ -11,7 +11,7 @@ namespace DotStep.StateMachines.SimpleCalculator
         public int Product { get; internal set; }
     }
 
-    public sealed class SimpleCalculator: StateMachine<AddNumbers>
+    public sealed class SimpleCalculator//: StateMachine<AddNumbers>
     {
     }
 

@@ -13,7 +13,7 @@ using DotStep.Core;
 
 namespace DotStep.StateMachines.CFProxy
 {
-    public sealed class CFProxyStateMachine : StateMachine<ValidateInputParameters>
+    public sealed class CFProxyStateMachine// : StateMachine<ValidateInputParameters>
     {
 
     }

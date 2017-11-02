@@ -6988,9 +6988,6 @@
   },
   "project": {
     "version": "1.0.3",
-    "restoreSettings": {
-      "hideWarningsAndErrors": true
-    },
     "restore": {
       "projectUniqueName": "F:\\Projects\\dotstep\\DotStep.Builder\\DotStep.Builder.csproj",
       "projectName": "DotStep.Builder",
@@ -7032,16 +7029,16 @@
         "dependencies": {
           "Microsoft.NETCore.App": {
             "target": "Package",
-            "version": "[1.0.5, )",
+            "version": "1.0.5",
             "autoReferenced": true
           },
           "Mono.Cecil": {
             "target": "Package",
-            "version": "[0.10.0-beta6, )"
+            "version": "0.10.0-beta6"
           },
           "Newtonsoft.Json": {
             "target": "Package",
-            "version": "[9.0.1, )"
+            "version": "9.0.1"
           }
         }
       }

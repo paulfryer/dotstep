@@ -27,17 +27,20 @@ namespace DotStep.Core
 
             var template = new
             {
-                Parameters = new {
-                    CodeS3Bucket = new {
+                Parameters = new
+                {
+                    CodeS3Bucket = new
+                    {
                         Type = "String"
                     },
-                    CodeS3Key = new {
+                    CodeS3Key = new
+                    {
                         Type = "String"
                     }
                 },
                 Resources = new Dictionary<string, object>()
             };
-            
+
             var lambdaNames = new List<String>();
 
             foreach (var state in stateMachine.States.Where(s => s is ITaskState))
@@ -46,25 +49,30 @@ namespace DotStep.Core
                 lambdaNames.Add(lambdaName);
                 var assemblyName = stateMachine.GetType().GetTypeInfo().Assembly.GetName().Name;
                 var namespaceName = stateMachine.GetType().GetTypeInfo().Namespace;
-                
+
                 var handler = $"{assemblyName}::{namespaceName}.{state.Name}::Execute";
-                
+
                 var memory = state.GetAttributeValue((FunctionMemory a) => a.Memory, DefaultMemory);
                 var timeout = state.GetAttributeValue((FunctionTimeout a) => a.Timeout, DefaultTimeout);
 
                 var assembly = Assembly.Load(new AssemblyName(assemblyName));
+
                 var assemblyDefinition = AssemblyDefinition.ReadAssembly(assembly.Location);
                 var type = assemblyDefinition.MainModule.Types.FirstOrDefault(t => t.Name == state.GetType().Name);
-                var calls = type.Methods.First(x => x.Name == "Execute").Body
+                var executeMethod = type.Methods.First(x => x.Name == "Execute");
+                var calls = executeMethod.Body
                     .Instructions.Where(x => x.OpCode == OpCodes.Call)
                     .Select(x => x.Operand);
-
-           
-
                 var actions = new List<string>();
 
-                foreach (var call in calls) {
-                    if (call.GetType().GetProperty("GenericArguments") != null) {
+                foreach (var customAction in state.GetType().GetTypeInfo().GetCustomAttributes<Action>()) {
+                    actions.Add(customAction.ActionName);
+                }
+
+                foreach (var call in calls)
+                {
+                    if (call.GetType().GetProperty("GenericArguments") != null)
+                    {
                         var amazon = new List<string>();
                         var arguments = (call as dynamic).GenericArguments;
                         foreach (var field in arguments[0].Fields)
@@ -85,12 +93,12 @@ namespace DotStep.Core
                                 }
 
                             }
-                        }                        
+                        }
                     }
-                    
+
                 }
 
-  
+
 
                 var lambdaRoleName = $"{lambdaName}-Role";
                 var lambdaRole = new
@@ -140,19 +148,21 @@ namespace DotStep.Core
                 }
 
                 template.Resources.Add(lambdaRoleName.Replace("-", string.Empty), lambdaRole);
-     
+
                 var functionResource = new
                 {
                     Type = "AWS::Lambda::Function",
-                    Properties = new {
+                    Properties = new
+                    {
                         FunctionName = lambdaName,
                         Runtime = "dotnetcore1.0",
                         Handler = handler,
                         Timeout = timeout,
                         MemorySize = memory,
-                        Code = new {
+                        Code = new
+                        {
                             S3Bucket = new { Ref = "CodeS3Bucket" },
-                            S3Key = new {Ref="CodeS3Key"}
+                            S3Key = new { Ref = "CodeS3Key" }
                         },
                         Role = new Dictionary<string, List<string>> {
                             { "Fn::GetAtt", new List<string>{
@@ -162,11 +172,11 @@ namespace DotStep.Core
                     }
                 };
 
-                template.Resources.Add(lambdaName.Replace("-", string.Empty), functionResource);                
+                template.Resources.Add(lambdaName.Replace("-", string.Empty), functionResource);
 
             }
 
-            
+
 
             var stateMachineRoleName = $"{stateMachineName}-Role";
             var stateMachineRole = new
@@ -212,7 +222,7 @@ namespace DotStep.Core
                                     }
                                 }
                         }
-                    }                    
+                    }
                 }
             };
             template.Resources.Add(stateMachineRoleName.Replace("-", string.Empty), stateMachineRole);
@@ -222,9 +232,10 @@ namespace DotStep.Core
             var stateMachineResource = new
             {
                 Type = "AWS::StepFunctions::StateMachine",
-                Properties = new {
+                Properties = new
+                {
                     DefinitionString = new Dictionary<string, string> { { "Fn::Sub", definition } },
-                        RoleArn = new Dictionary<string, List<string>> {
+                    RoleArn = new Dictionary<string, List<string>> {
                             { "Fn::GetAtt", new List<string>{
                                 stateMachineRoleName.Replace("-", string.Empty), "Arn"
                             } }
@@ -234,165 +245,11 @@ namespace DotStep.Core
             };
 
             template.Resources.Add(stateMachineName, stateMachineResource);
-            
+
             var json = JsonConvert.SerializeObject(template, Formatting.Indented);
 
             return json;
         }
-
-
-
-        /*
-        public async Task PublishAsync(
-            AWSCredentials awsCredentials,
-            string region, 
-            string accountId,
-            string publishLocation)
-        {
-            IAmazonLambda lambda = new AmazonLambdaClient(awsCredentials);
-            IAmazonStepFunctions stepFunctions = new AmazonStepFunctionsClient(awsCredentials);
-
-            var statMachineName = GetType().Name;
-
-            if (!Directory.Exists("deployment"))
-                Directory.CreateDirectory("deployment");
-
-            // Zip the code.
-            var fileLocation = "deployment/" + statMachineName + ".zip";
-            if (File.Exists(fileLocation))
-                File.Delete(fileLocation);
-
-            ZipFile.CreateFromDirectory(publishLocation, fileLocation);
-
-            var statMachineDefinitionJson = Describe(region, accountId);
-
-            foreach (var state in States.Where(s => s is ITaskState))
-            {
-                var lambdaName = $"{statMachineName}-{state.Name}";
-                Console.WriteLine("Creating function: " + lambdaName);
-
-                using (var codeStream = new MemoryStream())
-                {
-                    File.Open(fileLocation, FileMode.Open).CopyTo(codeStream);       
-                    Console.WriteLine($"Processing Lambda for region: {region}.");
-
-                    try
-                    {
-                        var getFunctionResult = await lambda.GetFunctionAsync(new GetFunctionRequest
-                        {
-                            FunctionName = lambdaName
-                        });
-
-                        Console.WriteLine($"Updating function: {lambdaName}");
-
-                        var updateFunctionResult = await lambda.UpdateFunctionCodeAsync(new UpdateFunctionCodeRequest
-                        {
-                            FunctionName = lambdaName,
-                            Publish = true,
-                            ZipFile = codeStream
-                        });
-
-                    }
-                    catch (ResourceNotFoundException)
-                    {
-                        try
-                        {
-                            Console.WriteLine("Function not found, creating now...");
-
-                            var assemblyName = GetType().GetTypeInfo().Assembly.GetName().Name;
-                            var namespaceName = GetType().GetTypeInfo().Namespace;
-                            var handler = $"{assemblyName}::{namespaceName}.{state.Name}::Execute";
-
-                            var lambdaRoleName = state.GetAttributeValue((ExplicitRole a) => a.RoleName, DefaultLambdaRoleName);
-                            var memory = state.GetAttributeValue((FunctionMemory a) => a.Memory, DefaultMemory);
-                            var timeout = state.GetAttributeValue((FunctionTimeout a) => a.Timeout, DefaultTimeout);
-                            
-                            var createFunctionResult = await lambda.CreateFunctionAsync(new CreateFunctionRequest
-                            {
-                                Runtime = Runtime.Dotnetcore10,
-                                FunctionName = lambdaName,
-                                Handler = handler,
-                                Role = $"arn:aws:iam::{accountId}:role/{lambdaRoleName}",
-                                Timeout = timeout,
-                                MemorySize = memory,
-                                Code = new FunctionCode
-                                {
-                                    ZipFile = codeStream
-                                }
-                            });
-                        }
-                        catch (Exception ex)
-                        {
-                            Console.Write(ex);
-                        }
-
-                    }
-                    catch (Exception ex) {
-                        Console.Write(ex);
-                    }
-                }
-            }
-
-            var stateMachineRoleName = this.GetAttributeValue((ExplicitRole a) => a.RoleName, DefaultStatesExecutionRoleName.Replace("{region}", region));
-            var stateMachineRoleArn = $"arn:aws:iam::{accountId}:role/service-role/{stateMachineRoleName}";
-            var definition = Describe(region, accountId);
-            var stateMachineName = GetType().Name;
-            var version = 1;
-            var publishStateMachine = true;
-
-            var listResult = await stepFunctions.ListStateMachinesAsync(new ListStateMachinesRequest
-            {
-                MaxResults = 1000
-            });
-            var latestVersion = listResult.StateMachines
-                                .Where(sm => sm.StateMachineArn.Contains(stateMachineName))                
-                                .Select(sm => sm.StateMachineArn)
-                                .OrderByDescending(arn => arn)
-                                .FirstOrDefault();
-
-            if (latestVersion != null)
-            {
-                Console.WriteLine("Existsing version found: " + latestVersion);
-                version = Convert.ToInt16(latestVersion.Substring(latestVersion.Length - 3));
-                var descriptionResult = await stepFunctions.DescribeStateMachineAsync(new DescribeStateMachineRequest
-                {
-                    StateMachineArn = latestVersion
-                });
-
-                if (descriptionResult.Definition != definition)
-                {
-                    Console.WriteLine("Step function definintion has changed, creating new version.");
-                    version++;
-                }
-                else publishStateMachine = false;    
-            }
-
-            if (publishStateMachine) {
-                var paddedVersion = version.ToString().PadLeft(3, '0');
-                stateMachineName += $"-v{ paddedVersion}";
-
-                var createStateMachineResult = await stepFunctions.CreateStateMachineAsync(new CreateStateMachineRequest
-                {
-                    Definition = definition,
-                    Name = stateMachineName,
-                    RoleArn = stateMachineRoleArn
-                });
-                Console.Write(createStateMachineResult.StateMachineArn);
-            }
-        }
-
-        public const string DefaultLambdaRoleName = "lambda_basic_execution";
-        public const string DefaultStatesExecutionRoleName = "StatesExecutionRole-{region}";
-        public const int DefaultTimeout = 30;
-        public const int DefaultMemory = 128;
-        public string DefaultCodeLocation
-        {
-            get
-            {
-                return $@"{Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)}\publish";
-            }
-        }
-        */
     }
 
 
