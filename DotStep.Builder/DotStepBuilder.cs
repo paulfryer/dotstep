@@ -1,4 +1,5 @@
-﻿using Mono.Cecil;
+﻿using DotStep.Core;
+using Mono.Cecil;
 using Mono.Cecil.Cil;
 using Newtonsoft.Json;
 using System;
@@ -6,7 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 
-namespace DotStep.Core
+namespace DotStep.Builder
 {
 
     public static class DotStepBuilder
@@ -65,7 +66,7 @@ namespace DotStep.Core
                     .Select(x => x.Operand);
                 var actions = new List<string>();
 
-                foreach (var customAction in state.GetType().GetTypeInfo().GetCustomAttributes<Action>()) {
+                foreach (var customAction in state.GetType().GetTypeInfo().GetCustomAttributes<DotStep.Core.Action>()) {
                     actions.Add(customAction.ActionName);
                 }
 

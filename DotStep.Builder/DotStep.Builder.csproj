@@ -1,14 +1,14 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <OutputType>Library</OutputType>
+    <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp1.0</TargetFramework>
     <ApplicationIcon />
     <OutputTypeEx>library</OutputTypeEx>
     <StartupObject />
     <AssemblyName>DotStep.Builder</AssemblyName>
     <RootNamespace>DotStep.Builder</RootNamespace>
-    <Version>1.0.3</Version>
+    <Version>1.0.5</Version>
     <PackageId>DotStep.Builder</PackageId>
     <Authors>Paul Fryer</Authors>
     <Company />
@@ -24,6 +24,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="AWSSDK.S3">
+      <Version>3.3.11.4</Version>
+    </PackageReference>
+    <PackageReference Include="DotStep.Core">
+      <Version>1.0.5</Version>
+    </PackageReference>
     <PackageReference Include="Mono.Cecil">
       <Version>0.10.0-beta6</Version>
       <IncludeAssets></IncludeAssets>
@@ -31,10 +37,9 @@
     <PackageReference Include="Newtonsoft.Json">
       <Version>9.0.1</Version>
     </PackageReference>
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\DotStep.Core\DotStep.Core.csproj" />
+    <PackageReference Include="System.Runtime.Loader">
+      <Version>4.3.0</Version>
+    </PackageReference>
   </ItemGroup>
 
 

@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2012/06/nuspec.xsd">
   <metadata>
     <id>DotStep.Builder</id>
-    <version>1.0.3</version>
+    <version>1.0.5</version>
     <authors>Paul Fryer</authors>
     <owners>Paul Fryer</owners>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
@@ -11,14 +11,17 @@
     <tags>AWS StepFunctions DotNet</tags>
     <dependencies>
       <group targetFramework=".NETCoreApp1.0">
-        <dependency id="DotStep.Core" version="1.0.4" exclude="Build,Analyzers" />
+        <dependency id="AWSSDK.S3" version="3.3.11.4" exclude="Build,Analyzers" />
+        <dependency id="DotStep.Core" version="1.0.5" exclude="Build,Analyzers" />
         <dependency id="Microsoft.NETCore.App" version="1.0.5" exclude="Build,Analyzers" />
         <dependency id="Mono.Cecil" version="0.10.0-beta6" exclude="Build,Analyzers" />
         <dependency id="Newtonsoft.Json" version="9.0.1" exclude="Build,Analyzers" />
+        <dependency id="System.Runtime.Loader" version="4.3.0" exclude="Build,Analyzers" />
       </group>
     </dependencies>
   </metadata>
   <files>
+    <file src="F:\Projects\dotstep\DotStep.Builder\bin\Debug\netcoreapp1.0\DotStep.Builder.runtimeconfig.json" target="lib\netcoreapp1.0\DotStep.Builder.runtimeconfig.json" />
     <file src="F:\Projects\dotstep\DotStep.Builder\bin\Debug\netcoreapp1.0\DotStep.Builder.dll" target="lib\netcoreapp1.0\DotStep.Builder.dll" />
   </files>
 </package>

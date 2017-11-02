@@ -1,6 +1,8 @@
 ﻿
+using DotStep.Builder;
 using DotStep.Core;
 using DotStep.StateMachines.StepFunctionDeployment;
+using System.Reflection;
 using System.Threading.Tasks;
 
 namespace DotStep.StateMachines
@@ -17,6 +19,14 @@ namespace DotStep.StateMachines
 
         public static async Task TestStepFunctionDeployer()
         {
+
+            
+
+                
+
+            var json = DotStepBuilder.BuildCloudFormationTemplate<StepFunctionDeployer>();
+
+
             IStateMachine stateMachine = new StepFunctionDeployer();
 
             var context = new Context
