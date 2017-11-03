@@ -22,6 +22,6 @@
     </dependencies>
   </metadata>
   <files>
-    <file src="F:\Projects\dotstep\DotStep.Builder\bin\Debug\netcoreapp1.0\DotStep.Builder.dll" target="lib\netcoreapp1.0\DotStep.Builder.dll" />
+    <file src="F:\Projects\dotstep\DotStep.Builder\bin\Release\netcoreapp1.0\DotStep.Builder.dll" target="lib\netcoreapp1.0\DotStep.Builder.dll" />
   </files>
 </package>

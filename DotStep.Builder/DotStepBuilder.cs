@@ -1,11 +1,18 @@
-﻿using DotStep.Core;
+﻿using Amazon.IdentityManagement;
+using Amazon.IdentityManagement.Model;
+using Amazon.S3;
+using Amazon.S3.Model;
+using DotStep.Core;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Reflection;
+using System.Threading.Tasks;
 
 namespace DotStep.Builder
 {
@@ -251,9 +258,84 @@ namespace DotStep.Builder
 
             return json;
         }
+
+        public static async Task BuildStateMachine<TStateMachine>(string codeBuildLocation, string releaseDirectory = "bin//release") where TStateMachine : IStateMachine
+        {
+            IAmazonS3 s3 = new AmazonS3Client();
+
+            if (!Directory.Exists(releaseDirectory))
+                Directory.CreateDirectory(releaseDirectory);
+            var zipFileLocation = Path.Combine(releaseDirectory, $"{typeof(TStateMachine).Name}.zip");
+            if (File.Exists(zipFileLocation))
+                File.Delete(zipFileLocation);
+            ZipFile.CreateFromDirectory(codeBuildLocation, zipFileLocation);
+
+
+            var template = DotStepBuilder.BuildCloudFormationTemplate<TStateMachine>();
+            File.WriteAllText($"{releaseDirectory}//template.json", template);
+
+            var accountId = GetAccountId();
+            var region = GetRegion();
+
+            var s3Bucket = $"dotstep-builder-{region}-{accountId}";
+            var s3Key = $"{GetBuildId()}/{typeof(TStateMachine).Name}.zip";
+
+            if (!s3.DoesS3BucketExistAsync(s3Bucket).Result)
+                await s3.EnsureBucketExistsAsync(s3Bucket);
+
+            var putObjectResult = await s3.PutObjectAsync(new PutObjectRequest
+            {
+                BucketName = s3Bucket,
+                Key = s3Key,
+                ContentType = "application/zip",
+                ServerSideEncryptionMethod = ServerSideEncryptionMethod.AES256,
+                FilePath = zipFileLocation
+            });
+
+            var config = JsonConvert.SerializeObject(new
+            {
+                Parameters = new {
+                    S3CodeBucket = s3Bucket,
+                    S3CodeKey = s3Key
+                } 
+            });
+
+            File.WriteAllText($"{releaseDirectory}//config.json", config);
+        }
+
+        private static string GetAccountId() {
+
+            string accountId = GetCodeBuildArn().Split(':')[4];
+
+            if (string.IsNullOrEmpty(accountId))
+            {
+                IAmazonIdentityManagementService iam = new AmazonIdentityManagementServiceClient();
+                var getUserResult = iam.GetUserAsync(new GetUserRequest { }).Result;
+                accountId = getUserResult.User.Arn.Split(':')[4];
+            }
+
+            return accountId;
+        }
+
+        private static string GetBuildId()
+        {
+            return GetCodeBuildArn().Split('/')[1];
+        }
+
+        private static string GetRegion()
+        {
+            return Environment.GetEnvironmentVariable("AWS_DEFAULT_REGION") ??
+                GetCodeBuildArn().Split(':')[3];
+        }
+
+        private static string GetCodeBuildArn()
+        {
+            const string defaultCodeBuildArn = "arn:aws:codebuild:us-west-2:account-ID:build/codebuild-demo-project:b1e6661e-e4f2-4156-9ab9-82a19EXAMPLE";
+            return Environment.GetEnvironmentVariable("CODEBUILD_BUILD_ARN") ??
+                defaultCodeBuildArn;
+        }
     }
-
-
+    
 }
 
 

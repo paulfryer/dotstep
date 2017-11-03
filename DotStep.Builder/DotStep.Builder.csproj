@@ -1,14 +1,14 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <OutputType>Exe</OutputType>
+    <OutputType>Library</OutputType>
     <TargetFramework>netcoreapp1.0</TargetFramework>
     <ApplicationIcon />
     <OutputTypeEx>library</OutputTypeEx>
     <StartupObject />
     <AssemblyName>DotStep.Builder</AssemblyName>
     <RootNamespace>DotStep.Builder</RootNamespace>
-    <Version>1.0.5</Version>
+    <Version>1.0.8</Version>
     <PackageId>DotStep.Builder</PackageId>
     <Authors>Paul Fryer</Authors>
     <Company />
@@ -24,6 +24,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="AWSSDK.IdentityManagement">
+      <Version>3.3.5.2</Version>
+    </PackageReference>
     <PackageReference Include="AWSSDK.S3">
       <Version>3.3.11.4</Version>
     </PackageReference>

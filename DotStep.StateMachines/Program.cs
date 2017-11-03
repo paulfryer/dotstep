@@ -28,11 +28,12 @@ namespace DotStep.StateMachines
 
 
             IStateMachine stateMachine = new StepFunctionDeployer();
+            
 
             var context = new Context
             {
-                CodeS3Bucket = "code-build-output",
-                CodeS3Key = "Archive7.zip"
+                CodeS3Bucket = "codepipeline-us-west-2-11367317747",
+                CodeS3Key = "dotstep-starter/MyAppBuild/qWSuIpz"
             };
 
             var engine = new StateMachineEngine<StepFunctionDeployer, Context>(context);
