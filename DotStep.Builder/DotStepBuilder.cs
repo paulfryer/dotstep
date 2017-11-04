@@ -52,7 +52,7 @@ namespace DotStep.Builder
             }
            
 
-            return JsonConvert.SerializeObject(template);
+            return JsonConvert.SerializeObject(template, Formatting.Indented);
         }
 
         private static Dictionary<string, object> BuildCloudFormationTemplateResources(Type stateMachineType, bool addActionsFromReflection = false)
