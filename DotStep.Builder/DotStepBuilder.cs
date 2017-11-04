@@ -79,6 +79,11 @@ namespace DotStep.Builder
 
                 var actions = new List<string>();
 
+                foreach (var customAction in state.GetType().GetTypeInfo().GetCustomAttributes<DotStep.Core.Action>())
+                {
+                    actions.Add(customAction.ActionName);
+                }
+
                 if (addActionsFromReflection) {
                     var assembly = Assembly.Load(new AssemblyName(assemblyName));
                     var assemblyDefinition = AssemblyDefinition.ReadAssembly(assembly.Location);
@@ -87,11 +92,6 @@ namespace DotStep.Builder
                     var calls = executeMethod.Body
                         .Instructions.Where(x => x.OpCode == OpCodes.Call)
                         .Select(x => x.Operand);
-
-                    foreach (var customAction in state.GetType().GetTypeInfo().GetCustomAttributes<DotStep.Core.Action>())
-                    {
-                        actions.Add(customAction.ActionName);
-                    }
 
                     foreach (var call in calls)
                     {
