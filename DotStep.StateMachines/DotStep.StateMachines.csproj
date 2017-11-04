@@ -22,13 +22,15 @@
     </PackageReference>
     <PackageReference Include="AWSSDK.StepFunctions" Version="3.3.0.20">
     </PackageReference>
-    <PackageReference Include="DotStep.Builder" Version="1.0.5">
-    </PackageReference>
     <PackageReference Include="DotStep.Core" Version="1.0.5">
     </PackageReference>
     <PackageReference Include="Newtonsoft.Json" Version="9.0.1" />
     <PackageReference Include="AWSSDK.SQS" Version="3.3.3.1" />
     <PackageReference Include="System.Runtime.Loader" Version="4.3.0">
     </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\DotStep.Builder\DotStep.Builder.csproj" />
   </ItemGroup>
 </Project>

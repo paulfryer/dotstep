@@ -2,6 +2,8 @@
 using DotStep.Builder;
 using DotStep.Core;
 using DotStep.StateMachines.StepFunctionDeployment;
+using System;
+using System.Collections.Generic;
 using System.Reflection;
 using System.Threading.Tasks;
 
@@ -20,15 +22,17 @@ namespace DotStep.StateMachines
         public static async Task TestStepFunctionDeployer()
         {
 
-            
 
+            var types = new List<Type> {
+                typeof(SimpleCalculator.SimpleCalculator),
+                typeof(CFProxy.CFProxyStateMachine),
+                typeof(StepFunctionDeployer)
+            };
                 
 
-            var json = DotStepBuilder.BuildCloudFormationTemplate<StepFunctionDeployer>();
+            var json = DotStepBuilder.BuildCloudFormationTemplates(types);
 
 
-            IStateMachine stateMachine = new StepFunctionDeployer();
-            
 
             var context = new Context
             {

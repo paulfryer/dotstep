@@ -141,7 +141,7 @@ namespace DotStep.StateMachines.StepFunctionDeployment
 
                     Console.WriteLine($"Working with state machine type: {stateMachineType}");
                     Console.WriteLine("Building cloud formation template.");
-                    var template = DotStepBuilder.BuildCloudFormationTemplate(stateMachineType);
+                    var template = DotStepBuilder.BuildCloudFormationTemplates(new List<Type> { stateMachineType });
                     
                     Console.WriteLine("Validating template..");
                     var validationResult = await cloudFormation.ValidateTemplateAsync(new ValidateTemplateRequest

@@ -66,6 +66,18 @@ namespace DotStep.Core
                                         if (numericCompairValue > numericValue)
                                             useNext = true;
                                         break;
+                                    case Operator.NumericGreaterThanEquals:
+                                        if (numericCompairValue >= numericValue)
+                                            useNext = true;
+                                        break;
+                                    case Operator.NumericLessThan:
+                                        if (numericCompairValue < numericValue)
+                                            useNext = true;
+                                        break;
+                                    case Operator.NumericLessThanEquals:
+                                        if (numericCompairValue <= numericValue)
+                                            useNext = true;
+                                        break;
                                     default: throw new NotImplementedException("Not implemented: " + choice.Operator);
                                 }
                                 break;

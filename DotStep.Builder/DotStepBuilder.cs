@@ -21,17 +21,9 @@ namespace DotStep.Builder
     {
         public const int DefaultTimeout = 30;
         public const int DefaultMemory = 128;
-        
-        public static string BuildCloudFormationTemplate<TStateMachine>() where TStateMachine : IStateMachine
-        {
-            var stateMachineType = typeof(TStateMachine);
-            return BuildCloudFormationTemplate(stateMachineType);
-        }
 
-        public static string BuildCloudFormationTemplate(Type stateMachineType)
-        {
-            var stateMachine = Activator.CreateInstance(stateMachineType) as IStateMachine;
-            var stateMachineName = stateMachine.GetType().Name;
+
+        public static string BuildCloudFormationTemplates(List<Type> stateMachineTypes){
 
             var template = new
             {
@@ -49,6 +41,28 @@ namespace DotStep.Builder
                 Resources = new Dictionary<string, object>()
             };
 
+            foreach (var stateMachineType in stateMachineTypes) {
+
+                if (!typeof(IStateMachine).IsAssignableFrom(stateMachineType))
+                    throw new Exception($"Type: {stateMachineType} doesn't implement {typeof(IStateMachine).Name}");
+
+                var resources = BuildCloudFormationTemplateResources(stateMachineType);
+                foreach (var resource in resources)
+                    template.Resources.Add(resource.Key, resource.Value);
+            }
+           
+
+            return JsonConvert.SerializeObject(template);
+        }
+
+        private static Dictionary<string, object> BuildCloudFormationTemplateResources(Type stateMachineType, bool addActionsFromReflection = false)
+        {
+            var stateMachine = Activator.CreateInstance(stateMachineType) as IStateMachine;
+            var stateMachineName = stateMachine.GetType().Name;
+
+            var resources = new Dictionary<string, object>();
+            
+
             var lambdaNames = new List<String>();
 
             foreach (var state in stateMachine.States.Where(s => s is ITaskState))
@@ -63,50 +77,46 @@ namespace DotStep.Builder
                 var memory = state.GetAttributeValue((FunctionMemory a) => a.Memory, DefaultMemory);
                 var timeout = state.GetAttributeValue((FunctionTimeout a) => a.Timeout, DefaultTimeout);
 
-                var assembly = Assembly.Load(new AssemblyName(assemblyName));
-
-                var assemblyDefinition = AssemblyDefinition.ReadAssembly(assembly.Location);
-                var type = assemblyDefinition.MainModule.Types.FirstOrDefault(t => t.Name == state.GetType().Name);
-                var executeMethod = type.Methods.First(x => x.Name == "Execute");
-                var calls = executeMethod.Body
-                    .Instructions.Where(x => x.OpCode == OpCodes.Call)
-                    .Select(x => x.Operand);
                 var actions = new List<string>();
 
-                foreach (var customAction in state.GetType().GetTypeInfo().GetCustomAttributes<DotStep.Core.Action>()) {
-                    actions.Add(customAction.ActionName);
-                }
+                if (addActionsFromReflection) {
+                    var assembly = Assembly.Load(new AssemblyName(assemblyName));
+                    var assemblyDefinition = AssemblyDefinition.ReadAssembly(assembly.Location);
+                    var type = assemblyDefinition.MainModule.Types.FirstOrDefault(t => t.Name == state.GetType().Name);
+                    var executeMethod = type.Methods.First(x => x.Name == "Execute");
+                    var calls = executeMethod.Body
+                        .Instructions.Where(x => x.OpCode == OpCodes.Call)
+                        .Select(x => x.Operand);
 
-                foreach (var call in calls)
-                {
-                    if (call.GetType().GetProperty("GenericArguments") != null)
+                    foreach (var customAction in state.GetType().GetTypeInfo().GetCustomAttributes<DotStep.Core.Action>())
                     {
-                        var amazon = new List<string>();
-                        var arguments = (call as dynamic).GenericArguments;
-                        foreach (var field in arguments[0].Fields)
+                        actions.Add(customAction.ActionName);
+                    }
+
+                    foreach (var call in calls)
+                    {
+                        if (call.GetType().GetProperty("GenericArguments") != null)
                         {
-                            string fieldName = field.FieldType.FullName;
-                            if (fieldName.StartsWith("Amazon") && fieldName.Contains("Response"))
+                            var amazon = new List<string>();
+                            var arguments = (call as dynamic).GenericArguments;
+                            foreach (var field in arguments[0].Fields)
                             {
-                                if (!amazon.Contains(fieldName))
+                                string fieldName = field.FieldType.FullName;
+                                if (fieldName.StartsWith("Amazon") && fieldName.Contains("Response"))
                                 {
-                                    amazon.Add(fieldName);
-
-                                    var service = fieldName.Split('.')[1];
-                                    var method = fieldName.Split('.')[3].Replace("Response", string.Empty);
-
-                                    var iamNamespace = DotStepUtil.GetIAMNamespace(service);
-
-                                    actions.Add($"{iamNamespace}:{method}");
+                                    if (!amazon.Contains(fieldName))
+                                    {
+                                        amazon.Add(fieldName);
+                                        var service = fieldName.Split('.')[1];
+                                        var method = fieldName.Split('.')[3].Replace("Response", string.Empty);
+                                        var iamNamespace = DotStepUtil.GetIAMNamespace(service);
+                                        actions.Add($"{iamNamespace}:{method}");
+                                    }
                                 }
-
                             }
                         }
                     }
-
                 }
-
-
 
                 var lambdaRoleName = $"{lambdaName}-Role";
                 var lambdaRole = new
@@ -155,7 +165,7 @@ namespace DotStep.Builder
                         );
                 }
 
-                template.Resources.Add(lambdaRoleName.Replace("-", string.Empty), lambdaRole);
+                resources.Add(lambdaRoleName.Replace("-", string.Empty), lambdaRole);
 
                 var functionResource = new
                 {
@@ -180,7 +190,7 @@ namespace DotStep.Builder
                     }
                 };
 
-                template.Resources.Add(lambdaName.Replace("-", string.Empty), functionResource);
+                resources.Add(lambdaName.Replace("-", string.Empty), functionResource);
 
             }
 
@@ -233,7 +243,7 @@ namespace DotStep.Builder
                     }
                 }
             };
-            template.Resources.Add(stateMachineRoleName.Replace("-", string.Empty), stateMachineRole);
+            resources.Add(stateMachineRoleName.Replace("-", string.Empty), stateMachineRole);
 
             var definition = stateMachine.Describe("${AWS::Region}", "${AWS::AccountId}");
 
@@ -252,13 +262,11 @@ namespace DotStep.Builder
 
             };
 
-            template.Resources.Add(stateMachineName, stateMachineResource);
+            resources.Add(stateMachineName, stateMachineResource);
 
-            var json = JsonConvert.SerializeObject(template, Formatting.Indented);
-
-            return json;
+            return resources;
         }
-
+        /*
         public static async Task BuildStateMachine<TStateMachine>(string codeBuildLocation, string releaseDirectory = "bin//release") where TStateMachine : IStateMachine
         {
             IAmazonS3 s3 = new AmazonS3Client();
@@ -302,7 +310,7 @@ namespace DotStep.Builder
 
             File.WriteAllText($"{releaseDirectory}//config.json", config);
         }
-
+        */
         private static string GetAccountId() {
 
             string accountId = GetCodeBuildArn().Split(':')[4];
@@ -425,7 +433,7 @@ public class DotStepUtil
                 {"RelationalDatabaseService", "rds"},
                 {"Route53", "route53"},
                 {"Route53Domains", "route53domains"},
-                {"SecurityTokenService", "sts"},
+                {"SecurityToken", "sts"},
                 {"ServiceCatalog", "servicecatalog"},
                 {"SimpleEmailService", "ses"},
                 {"SimpleNotificationService", "sns"},
