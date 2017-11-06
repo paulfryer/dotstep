@@ -1,5 +1,6 @@
-# dotstep
-Library for creating AWS Step Functions using a code first approach.
+# DotStep
+
+DotStep is a framework for creating AWS Step Functions using a code first approach.
 
 Install the Starter Project
 
