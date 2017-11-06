@@ -3,5 +3,5 @@ Library for creating AWS Step Functions using a code first approach.
 
 First Header|Second Header
 ------------|-------------
-Content from cell 1|Content from cell 2
+![Launch in us-west-2](cloudformation-launch-stack.png)|Content from cell 2
 Content in the first column|Content in the second column
