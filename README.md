@@ -1,7 +1,8 @@
 # dotstep
 Library for creating AWS Step Functions using a code first approach.
 
-CloudFormation Single Click Installers
+Install the Starter Project
+Launch a single click CloudFormation template in one of the supported regions:
 
 us-east-1|us-east-2|us-west-2|eu-west-1|eu-central-1|eu-west-2|ap-southeast-2|ap-northeast-1
 ---------|---------|---------|---------|------------|---------|--------------|--------------
