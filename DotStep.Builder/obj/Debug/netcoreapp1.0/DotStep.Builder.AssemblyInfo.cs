@@ -13,7 +13,7 @@ using System.Reflection;
 
 [assembly: System.Reflection.AssemblyCompanyAttribute("Paul Fryer")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
-[assembly: System.Reflection.AssemblyDescriptionAttribute("Utility for building cloud formation templates from DotCore framework.\r\n")]
+[assembly: System.Reflection.AssemblyDescriptionAttribute("Utility for building cloud formation templates from DotCore framework.\n")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.1.3.0")]
 [assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.1.3")]
 [assembly: System.Reflection.AssemblyProductAttribute("DotStep.Builder")]

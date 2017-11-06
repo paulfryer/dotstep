@@ -6,7 +6,7 @@
   "compilationOptions": {},
   "targets": {
     ".NETCoreApp,Version=v1.0": {
-      "DotStep.Builder/1.1.3": {
+      "dotstep.builder/1.1.3": {
         "dependencies": {
           "AWSSDK.IdentityManagement": "3.3.5.2",
           "AWSSDK.S3": "3.3.11.4",
@@ -19,7 +19,7 @@
           "DotStep.Builder.dll": {}
         }
       },
-      "Amazon.Lambda.Core/1.0.0": {
+      "amazon.lambda.core/1.0.0": {
         "dependencies": {
           "System.IO": "4.3.0",
           "System.Runtime": "4.3.0"
@@ -28,7 +28,7 @@
           "lib/netstandard1.3/Amazon.Lambda.Core.dll": {}
         }
       },
-      "Amazon.Lambda.Serialization.Json/1.1.0": {
+      "amazon.lambda.serialization.json/1.1.0": {
         "dependencies": {
           "Amazon.Lambda.Core": "1.0.0",
           "Newtonsoft.Json": "9.0.1",
@@ -39,12 +39,12 @@
           "lib/netstandard1.3/Amazon.Lambda.Serialization.Json.dll": {}
         }
       },
-      "AWSSDK.Core/3.3.18.2": {
+      "awssdk.core/3.3.18.2": {
         "runtime": {
           "lib/netstandard1.3/AWSSDK.Core.dll": {}
         }
       },
-      "AWSSDK.IdentityManagement/3.3.5.2": {
+      "awssdk.identitymanagement/3.3.5.2": {
         "dependencies": {
           "AWSSDK.Core": "3.3.18.2"
         },
@@ -52,7 +52,7 @@
           "lib/netstandard1.3/AWSSDK.IdentityManagement.dll": {}
         }
       },
-      "AWSSDK.S3/3.3.11.4": {
+      "awssdk.s3/3.3.11.4": {
         "dependencies": {
           "AWSSDK.Core": "3.3.18.2"
         },
@@ -60,7 +60,7 @@
           "lib/netstandard1.3/AWSSDK.S3.dll": {}
         }
       },
-      "DotStep.Core/1.0.5": {
+      "dotstep.core/1.0.5": {
         "dependencies": {
           "Amazon.Lambda.Core": "1.0.0",
           "Amazon.Lambda.Serialization.Json": "1.1.0",
@@ -70,9 +70,9 @@
           "lib/netcoreapp1.0/DotStep.Core.dll": {}
         }
       },
-      "Microsoft.NETCore.Platforms/1.1.0": {},
-      "Microsoft.NETCore.Targets/1.1.0": {},
-      "Mono.Cecil/0.10.0-beta6": {
+      "microsoft.netcore.platforms/1.1.0": {},
+      "microsoft.netcore.targets/1.1.0": {},
+      "mono.cecil/0.10.0-beta6": {
         "dependencies": {
           "System.Reflection": "4.3.0"
         },
@@ -83,7 +83,7 @@
           "lib/netstandard1.3/Mono.Cecil.dll": {}
         }
       },
-      "Newtonsoft.Json/9.0.1": {
+      "newtonsoft.json/9.0.1": {
         "dependencies": {
           "System.IO": "4.3.0",
           "System.Reflection": "4.3.0",
@@ -96,7 +96,7 @@
           "lib/netstandard1.0/Newtonsoft.Json.dll": {}
         }
       },
-      "System.IO/4.3.0": {
+      "system.io/4.3.0": {
         "dependencies": {
           "Microsoft.NETCore.Platforms": "1.1.0",
           "Microsoft.NETCore.Targets": "1.1.0",
@@ -105,7 +105,7 @@
           "System.Threading.Tasks": "4.3.0"
         }
       },
-      "System.Reflection/4.3.0": {
+      "system.reflection/4.3.0": {
         "dependencies": {
           "Microsoft.NETCore.Platforms": "1.1.0",
           "Microsoft.NETCore.Targets": "1.1.0",
@@ -114,20 +114,20 @@
           "System.Runtime": "4.3.0"
         }
       },
-      "System.Reflection.Primitives/4.3.0": {
+      "system.reflection.primitives/4.3.0": {
         "dependencies": {
           "Microsoft.NETCore.Platforms": "1.1.0",
           "Microsoft.NETCore.Targets": "1.1.0",
           "System.Runtime": "4.3.0"
         }
       },
-      "System.Runtime/4.3.0": {
+      "system.runtime/4.3.0": {
         "dependencies": {
           "Microsoft.NETCore.Platforms": "1.1.0",
           "Microsoft.NETCore.Targets": "1.1.0"
         }
       },
-      "System.Runtime.Loader/4.3.0": {
+      "system.runtime.loader/4.3.0": {
         "dependencies": {
           "System.IO": "4.3.0",
           "System.Reflection": "4.3.0",
@@ -137,7 +137,7 @@
           "lib/netstandard1.5/System.Runtime.Loader.dll": {}
         }
       },
-      "System.Runtime.Serialization.Primitives/4.1.1": {
+      "system.runtime.serialization.primitives/4.1.1": {
         "dependencies": {
           "System.Runtime": "4.3.0"
         },
@@ -145,14 +145,14 @@
           "lib/netstandard1.3/System.Runtime.Serialization.Primitives.dll": {}
         }
       },
-      "System.Text.Encoding/4.3.0": {
+      "system.text.encoding/4.3.0": {
         "dependencies": {
           "Microsoft.NETCore.Platforms": "1.1.0",
           "Microsoft.NETCore.Targets": "1.1.0",
           "System.Runtime": "4.3.0"
         }
       },
-      "System.Threading.Tasks/4.3.0": {
+      "system.threading.tasks/4.3.0": {
         "dependencies": {
           "Microsoft.NETCore.Platforms": "1.1.0",
           "Microsoft.NETCore.Targets": "1.1.0",
@@ -162,134 +162,134 @@
     }
   },
   "libraries": {
-    "DotStep.Builder/1.1.3": {
+    "dotstep.builder/1.1.3": {
       "type": "project",
       "serviceable": false,
       "sha512": ""
     },
-    "Amazon.Lambda.Core/1.0.0": {
+    "amazon.lambda.core/1.0.0": {
       "type": "package",
       "serviceable": true,
       "sha512": "sha512-+pBYGHaOaDAhu2j8BA5MhKLwxZM7lgmTSroGyCzEqWMBx+uc+QtpED2ShCAkKjKeedXH+LvJpQAUkEtW7rfcgQ==",
       "path": "amazon.lambda.core/1.0.0",
       "hashPath": "amazon.lambda.core.1.0.0.nupkg.sha512"
     },
-    "Amazon.Lambda.Serialization.Json/1.1.0": {
+    "amazon.lambda.serialization.json/1.1.0": {
       "type": "package",
       "serviceable": true,
       "sha512": "sha512-xRovd71Kji08OYj3PkHlNMA/RgRdyGj2TLRFt7R5JrzHkrrH8fV8DjdaCDR1SLf8p8LJF6fQjEHdW5vSDOArrw==",
       "path": "amazon.lambda.serialization.json/1.1.0",
       "hashPath": "amazon.lambda.serialization.json.1.1.0.nupkg.sha512"
     },
-    "AWSSDK.Core/3.3.18.2": {
+    "awssdk.core/3.3.18.2": {
       "type": "package",
       "serviceable": true,
       "sha512": "sha512-T+r3QstCCcX5CEkBFY66A1p3097i1bXC3kD7zALvzFprpM2AYd12WoGH3AUB0WlvZir2OaKcjhLDCXeiqeqdog==",
       "path": "awssdk.core/3.3.18.2",
       "hashPath": "awssdk.core.3.3.18.2.nupkg.sha512"
     },
-    "AWSSDK.IdentityManagement/3.3.5.2": {
+    "awssdk.identitymanagement/3.3.5.2": {
       "type": "package",
       "serviceable": true,
       "sha512": "sha512-eaXpqKYAG2+kYGQBHWA3CTJzdbfwToHzDGIXCXTDlcVfSG63twGBQ11EQBBSId9P6iGosIl2xw1VP1BLQHrzHw==",
       "path": "awssdk.identitymanagement/3.3.5.2",
       "hashPath": "awssdk.identitymanagement.3.3.5.2.nupkg.sha512"
     },
-    "AWSSDK.S3/3.3.11.4": {
+    "awssdk.s3/3.3.11.4": {
       "type": "package",
       "serviceable": true,
       "sha512": "sha512-+OCDRNS+xFW+CafKUh8gaKvZpFwIXVhlk0dM2NSGeoc+ntxmGXfApWZ4UkkBufdSzK46NpzgCgp1kRTqJuoBuA==",
       "path": "awssdk.s3/3.3.11.4",
       "hashPath": "awssdk.s3.3.3.11.4.nupkg.sha512"
     },
-    "DotStep.Core/1.0.5": {
+    "dotstep.core/1.0.5": {
       "type": "package",
       "serviceable": true,
       "sha512": "sha512-uRt268g6va9dH0IfIfo4M5jtaf80DMChdfkUI0+oC/VlayqeKd6uGu4voICES+VzhrGZ5JeXF6T4G6+vW/Tb1w==",
       "path": "dotstep.core/1.0.5",
       "hashPath": "dotstep.core.1.0.5.nupkg.sha512"
     },
-    "Microsoft.NETCore.Platforms/1.1.0": {
+    "microsoft.netcore.platforms/1.1.0": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-loDI0R/JwtJ9Gv57CU4m/FYKtz+G9Lfvaftviiu9ORWxiBImQOPyiHsiYFwx5wyFUpYgemLOmLV2Y1g72+bfHA==",
+      "sha512": "sha512-5jCL3XdHxlizk/BBtFtLPFBwIGdK910Bbb3rA+6Bzmlq2bXuF2HLmU4q8FT4fWOFDMCPZvV2nFeg+W8wckl9PQ==",
       "path": "microsoft.netcore.platforms/1.1.0",
       "hashPath": "microsoft.netcore.platforms.1.1.0.nupkg.sha512"
     },
-    "Microsoft.NETCore.Targets/1.1.0": {
+    "microsoft.netcore.targets/1.1.0": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-isoB1+xBbGBBpW08a+IGz9yGrRCM7AunIOCyJXUiEur5S5eh97+vG+sBHqbctO8xqLAIbs1eRAWsGVAHKBSsLg==",
+      "sha512": "sha512-0POMH7R71kakFwOWerf5ewz8KVWf/+tWRFYU9pPYd/JGkMQSOS1wn1pp3PfdjRrEziJuHbpDe+4WvseaEpEeCw==",
       "path": "microsoft.netcore.targets/1.1.0",
       "hashPath": "microsoft.netcore.targets.1.1.0.nupkg.sha512"
     },
-    "Mono.Cecil/0.10.0-beta6": {
+    "mono.cecil/0.10.0-beta6": {
       "type": "package",
       "serviceable": true,
       "sha512": "sha512-AGOyahYE6CGh3dLz/mz6cnj8hABoJm2KcMRHSHMrW75WHgU5YB+5PSQTVWsmQk9RFC4HAGr5ZzLMFFXsbmTi1w==",
       "path": "mono.cecil/0.10.0-beta6",
       "hashPath": "mono.cecil.0.10.0-beta6.nupkg.sha512"
     },
-    "Newtonsoft.Json/9.0.1": {
+    "newtonsoft.json/9.0.1": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-mY2/LX0/A8Il2uMKulJ+oXZeIO36VCr/7uGfuH96P4nCQn6cmGuGdv+5ZzJ2sOHI2hIFj2QpaJk4HNfg2hW+ig==",
+      "sha512": "sha512-U82mHQSKaIk+lpSVCbWYKNavmNH1i5xrExDEquU1i6I5pV6UMOqRnJRSlKO3cMPfcpp0RgDY+8jUXHdQ4IfXvw==",
       "path": "newtonsoft.json/9.0.1",
       "hashPath": "newtonsoft.json.9.0.1.nupkg.sha512"
     },
-    "System.IO/4.3.0": {
+    "system.io/4.3.0": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-HJJ2aLzFnCUh4yZ7DTjsX5XIB02xrwUCtuiOk0c0nNyRUg96eHluPC0KfKpVCplcMpGSFJVDdmMV6FoVVdeSSQ==",
+      "sha512": "sha512-b1otMiMeeEpoZ30sjG/1x6F2Zc43oi5PewaLVRS91azwasaBb7PQA2nRP0tFkbzdwkFdhIVjt5n47wrUtXeAeg==",
       "path": "system.io/4.3.0",
       "hashPath": "system.io.4.3.0.nupkg.sha512"
     },
-    "System.Reflection/4.3.0": {
+    "system.reflection/4.3.0": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-a4ae7IMP6tzyHNopt5p7FMOuVqpR+Cnip3jZvCC6Q7xfQ6QwhIxsg/EK8PCQVy8ED19kMLUuUIH5jOeLqx3I7A==",
+      "sha512": "sha512-xDNORCFChtUIlCKJGNZmpv4unQYS1044EAUMY819FwsOr/hKxUOCtpLAbmlpGEq6w/jG1JT2nMVQwWGUd6qctA==",
       "path": "system.reflection/4.3.0",
       "hashPath": "system.reflection.4.3.0.nupkg.sha512"
     },
-    "System.Reflection.Primitives/4.3.0": {
+    "system.reflection.primitives/4.3.0": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-4OpEhgwA4yeIKNathb9vLr0ntaVgar989DQZskvJzsf8pElp4Be6JDRsYrCZeTgjWPGK8e41eXoU4zcFsDh/JA==",
+      "sha512": "sha512-8M6U1IlqpwE2Q3VvzOflTdVgMTMQfhXPUZPzCXOr0NEvUQPwqoeixnkCbopAbJM6NJ1RzZfFUzONbUfPEAVhJA==",
       "path": "system.reflection.primitives/4.3.0",
       "hashPath": "system.reflection.primitives.4.3.0.nupkg.sha512"
     },
-    "System.Runtime/4.3.0": {
+    "system.runtime/4.3.0": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-padzt+I+kVMnoZpAoy+k5+J+0X+c6XN6C2Uc3XanQlVGvpYKSVVtB1/SHm4t3BZFrXh8kBjy2MMGOLh1q91tNg==",
+      "sha512": "sha512-v9X2IzbFWFcOOrpaXOXBJQikNS8TfIlXnu2G55KP47Z9j384ntQa4AVL7HHaucvXfpuiHtVUUFdSXCJ8q/JeNw==",
       "path": "system.runtime/4.3.0",
       "hashPath": "system.runtime.4.3.0.nupkg.sha512"
     },
-    "System.Runtime.Loader/4.3.0": {
+    "system.runtime.loader/4.3.0": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-o7htnfyfDXnDsfQszk5IiVe8X8jQ/GPu3IMIvxTu48ZT7yMy4v57bkr91ZZjBiYsFP8dypSKqZpLuXuwAqNUDQ==",
+      "sha512": "sha512-kFlVPboa1bdCo4pFuvn4sqaRXB6S33SsqQTToVIRy5f0Lv+lE4669UowL/uPZ7TXTP5V3WCTGXCojlhMoS3jDw==",
       "path": "system.runtime.loader/4.3.0",
       "hashPath": "system.runtime.loader.4.3.0.nupkg.sha512"
     },
-    "System.Runtime.Serialization.Primitives/4.1.1": {
+    "system.runtime.serialization.primitives/4.1.1": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-97gBJUWUoqqrjL7/q+zvUvbckFm4hoU48mnkQ806jK+ejvi0bcT8r0mztw9dgnQcOtb2lc6sBc14uJCVOn6vew==",
+      "sha512": "sha512-HZ6Du5QrTG8MNJbf4e4qMO3JRAkIboGT5Fk804uZtg3Gq516S7hAqTm2UZKUHa7/6HUGdVy3AqMQKbns06G/cg==",
       "path": "system.runtime.serialization.primitives/4.1.1",
       "hashPath": "system.runtime.serialization.primitives.4.1.1.nupkg.sha512"
     },
-    "System.Text.Encoding/4.3.0": {
+    "system.text.encoding/4.3.0": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-BsU0/a7+X6l/aPMxNs7Qk8bvf1SjMRvD/SmrOtPBfRzWuMxdBEG1cEv2gsBeF3QthFuh2TWypuX8nOVQBohgXw==",
+      "sha512": "sha512-NBSYkYrc23vAb2KgoY9OthiuxKiD11sskXJXpkhnsKXdZAbJ7vVNp0Mmn8ZvxJpw3wjBuE/bjQStp5c+9t4IcA==",
       "path": "system.text.encoding/4.3.0",
       "hashPath": "system.text.encoding.4.3.0.nupkg.sha512"
     },
-    "System.Threading.Tasks/4.3.0": {
+    "system.threading.tasks/4.3.0": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-WZ3ABSJiyBhAG55CGdqIwKbn9TBoop0dhViVjBUGsdvmYPut81JnbmP1wIHP7A4tGawTlrCT4z3rLyPJYd5csQ==",
+      "sha512": "sha512-kR6S/XOITI9K+DlsCjrlcRNMteVfpzj43Oo9S69hYFHdOADw+QfQ/R8AeteUmuEkiuVhgSUpaAUj1o/LEG+2ZQ==",
       "path": "system.threading.tasks/4.3.0",
       "hashPath": "system.threading.tasks.4.3.0.nupkg.sha512"
     }
