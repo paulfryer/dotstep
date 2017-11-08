@@ -29,7 +29,7 @@ namespace DotStep.StateMachines.StepFunctionQueue
             context.AccountId = getUserResult.User.Arn.Split(':')[4];
 
             context.JobQueueUrl = $"https://sqs.us-west-2.amazonaws.com/{context.AccountId}/{context.JobQueueName}";
-            context.StateMachineArn = $"arn:aws:states:us-west-2:{context.AccountId}:stateMachine:{context.StateMachineName}";
+            context.FileProcessingStateMachineArn = $"arn:aws:states:us-west-2:{context.AccountId}:stateMachine:{context.FileProcessingStateMachineName}";
 
 
             return context;
@@ -45,7 +45,9 @@ namespace DotStep.StateMachines.StepFunctionQueue
             var getQueueAttributesResult = await sqs.GetQueueAttributesAsync(new GetQueueAttributesRequest
             {
                 QueueUrl = @event.JobQueueUrl,
-                AttributeNames = new List<string> { "ApproximateNumberOfMessages", "ApproximateNumberOfMessagesNotVisible" }
+                AttributeNames = new List<string> {
+                    "ApproximateNumberOfMessages",
+                    "ApproximateNumberOfMessagesNotVisible" }
             });
 
             @event.AvailableCapacity = @event.ParallelLevel - getQueueAttributesResult.ApproximateNumberOfMessagesNotVisible;
@@ -60,20 +62,19 @@ namespace DotStep.StateMachines.StepFunctionQueue
     {
         public string Region { get; set; }
         public string JobQueueName { get; set; }
-        public string StateMachineName { get; set; }
-
-        public string AccountId { get; internal set; }
-        public string JobQueueUrl { get; internal set; }        
-        public string StateMachineArn { get; internal set; }
-
+        public string FileProcessingStateMachineName { get; set; }
+        public string DynamoTableName { get; set; }
+        public string EnrichmentEndpoint { get; set; }
         public int ParallelLevel { get; set; }
 
-        public bool HasMoreMessages { get; internal set; }
-        public bool MoreCapacityAvailable { get; internal set; }
-        public int AvailableCapacity { get; internal set; }
-        public int MessagesWaitingForProcessing { get; internal set; }
-        public int MessagesProcessing { get; internal set; }
+        public string AccountId { get; set; }
+        public string JobQueueUrl { get; set; }        
+        public string FileProcessingStateMachineArn { get; set; }
         
+        //public bool HasMoreMessages { get; set; }
+        public int AvailableCapacity { get; set; }
+        public int MessagesWaitingForProcessing { get; set; }
+        public int MessagesProcessing { get; set; }
     }
 
 
@@ -84,7 +85,7 @@ namespace DotStep.StateMachines.StepFunctionQueue
             get
             {
                 return new List<Choice> {
-                    new Choice<CheckCapacity, SFQueueContext>(c => c.HasMoreMessages == true)
+                    new Choice<CheckCapacity, SFQueueContext>(c => c.MessagesProcessing > 0 || c.MessagesProcessing > 0)
                 };
             }
         }
@@ -97,7 +98,7 @@ namespace DotStep.StateMachines.StepFunctionQueue
             get
             {
                 return new List<Choice>{
-                    new Choice<StartStepFunctions, SFQueueContext>(c => c.MoreCapacityAvailable == true)
+                    new Choice<StartStepFunctions, SFQueueContext>(c => c.AvailableCapacity > 0)
                 };
             }
         }
@@ -113,33 +114,36 @@ namespace DotStep.StateMachines.StepFunctionQueue
 
         public override async Task<SFQueueContext> Execute(SFQueueContext context)
         {         
-
             var maxMessages = context.AvailableCapacity < 10 ?
                 context.AvailableCapacity : 10;
 
             var receiveMessageResult = await sqs.ReceiveMessageAsync(new ReceiveMessageRequest{
                 MaxNumberOfMessages = maxMessages,
-                QueueUrl = context.JobQueueUrl,
-                
+                QueueUrl = context.JobQueueUrl                
             });
 
-            var json = JsonConvert.SerializeObject(new
-            {
-                // todo: get these from the context object.
-                SomeProperty = "some value here.", 
-                SomeOtherProperty = 29
-            });
+            var startTasks = new List<Task>();
+            foreach (var message in receiveMessageResult.Messages) {
+                var json = JsonConvert.SerializeObject(new
+                {
+                    // todo: get these from the context object.
+                    SomeProperty = "some value here.",
+                    SomeOtherProperty = 29
+                });
 
-            var startExecutionResult = await stepFunctions.StartExecutionAsync(
-                new StartExecutionRequest{
-                Input = json,
-                StateMachineArn = context.StateMachineArn
-            });
+                var startTask = stepFunctions.StartExecutionAsync(
+                    new StartExecutionRequest
+                    {
+                        Input = json,
+                        StateMachineArn = context.FileProcessingStateMachineArn
+                    });
 
-            Console.WriteLine($"Started step function {context.StateMachineArn}, execution ID: {startExecutionResult.ExecutionArn}");
+                startTasks.Add(startTask);
+            }    
+            await Task.WhenAll(startTasks);
 
-            context.MoreCapacityAvailable = false;
-
+            context.AvailableCapacity -= receiveMessageResult.Messages.Count;
+            
             return context;
         }
     }
