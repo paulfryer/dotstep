@@ -19,15 +19,20 @@ namespace DotStep.Core
         public Choice(Expression<Func<TContext, bool>> expression)
         {
             Next = typeof(TState);
-            var binaryExpression = expression.Body as BinaryExpression;
-            var left = binaryExpression.Left as MemberExpression;
-            var property = left.Member as PropertyInfo;
-            Variable = property.Name;
-            Operator = GetStepFunctionOperator(expression.Body.NodeType, property);
-            var right = binaryExpression.Right as ConstantExpression;
-            Value = Convert.ToString(right.Value);
-        }
 
+            if (expression.Body is BinaryExpression)
+            {
+                var binaryExpression = expression.Body as BinaryExpression;
+                var left = binaryExpression.Left as MemberExpression;
+                var property = left.Member as PropertyInfo;
+                Variable = property.Name;
+                Operator = GetStepFunctionOperator(expression.Body.NodeType, property);
+                var right = binaryExpression.Right as ConstantExpression;
+                Value = Convert.ToString(right.Value);
+            }
+            else throw new NotSupportedException($"Expression type: {expression.Body.GetType().Name} is not supported.");
+
+        }
 
         private string GetStepFunctionOperator(ExpressionType nodeType, PropertyInfo property) {
 

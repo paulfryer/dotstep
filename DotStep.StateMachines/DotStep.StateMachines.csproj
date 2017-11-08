@@ -20,9 +20,10 @@
     <PackageReference Include="AWSSDK.Route53" Version="3.3.8" />
     <PackageReference Include="AWSSDK.S3" Version="3.3.11.4">
     </PackageReference>
-    <PackageReference Include="AWSSDK.StepFunctions" Version="3.3.0.20">
+    <PackageReference Include="AWSSDK.SecurityToken">
+      <Version>3.3.3.2</Version>
     </PackageReference>
-    <PackageReference Include="DotStep.Core" Version="1.0.5">
+    <PackageReference Include="AWSSDK.StepFunctions" Version="3.3.0.20">
     </PackageReference>
     <PackageReference Include="Newtonsoft.Json" Version="9.0.1" />
     <PackageReference Include="AWSSDK.SQS" Version="3.3.3.1" />
@@ -33,5 +34,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\DotStep.Builder\DotStep.Builder.csproj" />
+    <ProjectReference Include="..\DotStep.Core\DotStep.Core.csproj" />
   </ItemGroup>
 </Project>

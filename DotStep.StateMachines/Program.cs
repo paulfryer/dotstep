@@ -2,6 +2,7 @@
 using DotStep.Builder;
 using DotStep.Core;
 using DotStep.StateMachines.StepFunctionDeployment;
+using DotStep.StateMachines.StepFunctionQueue;
 using System;
 using System.Collections.Generic;
 using System.Reflection;
@@ -21,21 +22,17 @@ namespace DotStep.StateMachines
 
         public static async Task TestStepFunctionDeployer()
         {
-
-
-            var types = new List<Type> {
-                typeof(SimpleCalculator.SimpleCalculator),
-                typeof(CFProxy.CFProxyStateMachine),
-                typeof(StepFunctionDeployer)
-            };
-
-            var context = new Context
+            var context = new SFQueueContext
             {
-                CodeS3Bucket = "codepipeline-us-west-2-11367317747",
-                CodeS3Key = "dotstep-starter/MyAppBuild/qWSuIpz"
+                Region = "us-west-2",
+                DynamoTableName = "stats",
+                JobQueueName = "new-file",
+                FileProcessingStateMachineName = "SingleFileProcessor",
+                EnrichmentEndpoint = "https://www.example.com/endpoint",
+                ParallelLevel = 10
             };
 
-            var engine = new StateMachineEngine<StepFunctionDeployer, Context>(context);
+            var engine = new StateMachineEngine<StepFunctionQueueStateMachine, SFQueueContext>(context);
             await engine.Start();
 
         }
