@@ -1,0 +1,19 @@
+﻿<Properties StartupConfiguration="{B3AD619C-7DD6-4CD3-BFDA-6F639FA8F5AC}|Default">
+  <MonoDevelop.Ide.ItemProperties.DotStep.StateMachines PreferredExecutionTarget="MonoDevelop.Default" />
+  <MonoDevelop.Ide.Workbench ActiveDocument="dotstep Status">
+    <Files>
+      <File FileName="DotStep.StateMachines/CFQuickStart.cs" Line="114" Column="3" />
+      <File FileName="DotStep.StateMachines/Program.cs" Line="30" Column="15" />
+      <File FileName="dotstep Status" />
+    </Files>
+  </MonoDevelop.Ide.Workbench>
+  <MonoDevelop.Ide.ItemProperties.Tests PreferredExecutionTarget="MonoDevelop.Default" />
+  <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" />
+  <MonoDevelop.Ide.DebuggingService.Breakpoints>
+    <BreakpointStore>
+      <Breakpoint file="/Users/pfryer/Projects/dotstep/Tests/Program.cs" relfile="Tests/Program.cs" line="33" column="1" />
+    </BreakpointStore>
+  </MonoDevelop.Ide.DebuggingService.Breakpoints>
+  <MonoDevelop.Ide.DebuggingService.PinnedWatches />
+  <MultiItemStartupConfigurations />
+</Properties>

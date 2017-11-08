@@ -1,4 +1,4 @@
-﻿
+
 using DotStep.Builder;
 using DotStep.Core;
 using DotStep.StateMachines.StepFunctionDeployment;
@@ -28,11 +28,6 @@ namespace DotStep.StateMachines
                 typeof(CFProxy.CFProxyStateMachine),
                 typeof(StepFunctionDeployer)
             };
-                
-
-            var json = DotStepBuilder.BuildCloudFormationTemplates(types);
-
-
 
             var context = new Context
             {
