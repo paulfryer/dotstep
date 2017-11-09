@@ -14,7 +14,7 @@ us-east-1|us-east-2|us-west-2|eu-west-1|eu-central-1|eu-west-2|ap-southeast-2|ap
 
 - _StackName_ - this is the name that will be used for all resources, so keep it small, lowercase and don't use spaces.
 
-- _SourceCodeZIp_ - this is the location of the Ziped source code you want to deploy.
+- _SourceCodeZip_ - this is the location of the Ziped source code you want to deploy. This defaults to the [Starter Project](https://github.com/paulfryer/dotstep-starter).
 
 - _SourceCodeDirectory_ - if your Zip'ed source code is not at the Root of the Zip file then you can provide the path within the Zip where the source code starts. Also note your buildspec.yml needs to be in the root directory.
 
