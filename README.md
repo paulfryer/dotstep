@@ -61,4 +61,10 @@ The following table represents the differnt types of States you can implement in
 |Wait|This represents an amount of time to wait, you specify this in seconds. You specify the next state to move to after waiting in the generic agurment TNext.|IWaitState|WaitState<TNext>|
 |Pass|This simply passes execution to the next state.|IPassState|PassState|
 
+### Example State Machine with States
+
+Review the following file to see the above state types in a single State Machine. This is part of the starter project which you can deploy with the above CloudFormation template.
+
+https://github.com/paulfryer/dotstep-starter/blob/master/DotStepStarter/StateMachines/SimpleCalculator.cs
+
 
