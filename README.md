@@ -31,6 +31,9 @@ The CI/CD Pipeline is now in place and will build and deploy your code every tim
 
 See this page for info on authenticating with your CodeCommit repository: http://docs.aws.amazon.com/codecommit/latest/userguide/setting-up-gc.html
 
+### Architectual Diagram
+
+![DotStep Architecture](/DotStep.png)
 
 ## Development Model
 
