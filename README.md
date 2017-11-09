@@ -56,7 +56,7 @@ The following table represents the differnt types of States you can implement in
 
 |State Type|Description|Interface|Base Class|
 |----------|-----------|---------|----------|
-|Task|This represents code that will be executed as a Lambda Function. Everything in the Execute method will be turned into a Lambda Function. You specify the context object TContext and the next state to move to after execution with TNext generic arguments.|ITaskState|TaskState<TContext, TNext>|
+|Task|This represents code that will be executed as a Lambda Function. Everything in the Execute method will be turned into a Lambda Function. You specify the context object TContext and the next state to move to after execution with TNext generic arguments. Apply [Action](/DotStep.Core/Action.cs) attributes to specify what actions the Lambda IAM Role should use.|ITaskState|TaskState<TContext, TNext>|
 |Choice|This represents a choice. You proivde a boolean expression based on the context object used in the state machine which will direct execution flow to the first true statement or default type provided as a generic agument TDefault.|IChoiceState|ChoiceState<TDefault>|
 |Wait|This represents an amount of time to wait, you specify this in seconds. You specify the next state to move to after waiting in the generic agurment TNext.|IWaitState|WaitState<TNext>|
 |Pass|This simply passes execution to the next state.|IPassState|PassState|
