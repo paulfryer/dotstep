@@ -144,7 +144,8 @@ namespace DotStep.StateMachines.StepFunctionQueue
                     new StartExecutionRequest
                     {
                         Input = message.Body,
-                        StateMachineArn = context.FileProcessingStateMachineArn
+                        StateMachineArn = context.FileProcessingStateMachineArn,
+                        Name = message.MessageId
                     });
                 startTasks.Add(startTask);
             }

@@ -60,7 +60,7 @@ namespace DotStep.Core
             };
 
             var operatorMap = operatorMapping.Single(map => map.Key == nodeType);
-
+            
             return $"{typeMap.Value}{operatorMap.Value}";            
         }
     }

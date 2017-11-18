@@ -31,7 +31,7 @@ namespace DotStep.Core
 
                 var state = Activator.CreateInstance(type) as IState;
 
-                if (state is ITaskState<TContext>)
+                if (state is ITaskState<TContext>)                
                 {
                     var taskState = state as ITaskState<TContext>;
                     context = await taskState.Execute(context);

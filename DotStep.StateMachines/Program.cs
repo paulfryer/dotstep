@@ -4,6 +4,7 @@ using DotStep.Builder;
 using DotStep.Core;
 using DotStep.StateMachines.StepFunctionDeployment;
 using DotStep.StateMachines.StepFunctionQueue;
+using DotStep.StateMachines.ThottledDynamoWriter;
 using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -15,9 +16,25 @@ namespace DotStep.StateMachines
 
         static void Main(string[] args)
         {
-            TestStepFunctionDeployer().Wait();
+            Test().Wait();
+
+            //TestStepFunctionDeployer().Wait();
         }
 
+        public static async Task Test() {
+            var context = new ThrottledDynamoWriter.Context {
+                StateMachineName = "SimpleCalculator-10YP6MNZ2ESA"
+            };
+
+
+
+            var engine = new StateMachineEngine<ThrottledDynamoWriter, ThrottledDynamoWriter.Context>(context);
+
+            var sm = new ThrottledDynamoWriter();
+            var description = sm.Describe("region", "account");
+
+            await engine.Start();
+        }
 
 
         public static async Task TestStepFunctionDeployer()

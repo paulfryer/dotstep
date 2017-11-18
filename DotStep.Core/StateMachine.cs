@@ -22,13 +22,31 @@ namespace DotStep.Core
         {
             get
             {
+                var nestedTypes = GetType().GetTypeInfo().GetMembers()
+                    .Where(member => member.MemberType == MemberTypes.NestedType 
+                   
+                    );
 
+
+                foreach (dynamic nestedType in nestedTypes) {
+                    if ((nestedType.ImplementedInterfaces as Type[]).Any(t => typeof(IState).IsAssignableFrom(t)))
+                        yield return (IState)Activator.CreateInstance(nestedType);
+                }
+                                 
+                    
+                    /*
+                 &&
+                    typeof(IState).IsAssignableFrom(member.DeclaringType))
+                    .Select(t => (IState)Activator.CreateInstance(t.DeclaringType));
+                    */
+
+                /*
                 return GetType().GetTypeInfo().Assembly.GetTypes()
                                      .Where(t => typeof(IState).IsAssignableFrom(t) &&
                                             t.GetTypeInfo().IsClass &&
                                             t.GetTypeInfo().IsSealed &&
                                             t.Namespace == StartAt.Namespace)
-                                         .Select(t => (IState)Activator.CreateInstance(t));
+                                         .Select(t => (IState)Activator.CreateInstance(t));*/
             }
         }
 
