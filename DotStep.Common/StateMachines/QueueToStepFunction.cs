@@ -4,7 +4,6 @@ using DotStep.Common.Functions;
 
 namespace DotStep.Common.StateMachines
 {
-
     public class QueueToStepFunction : StateMachine<QueueToStepFunction.EnsureAccountAndRegionAreSet>
     {
         public class Context : IGetExecutionInfoContext, IQueueStatsContext, IMessageProcessingContext
@@ -60,6 +59,5 @@ namespace DotStep.Common.StateMachines
         }
 
         public class Done : EndState { }
-
     }
 }

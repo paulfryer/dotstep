@@ -18,7 +18,8 @@ namespace DotStep.Common.Functions
     }
 
 
-        public sealed class GetQueueStats<TContext> : LambdaFunction<TContext>
+    [Core.Action(ActionName = "sqs:GetQueueAttributes")]
+    public sealed class GetQueueStats<TContext> : LambdaFunction<TContext>
         where TContext : IQueueStatsContext
     {
         IAmazonSQS sqs = new AmazonSQSClient();

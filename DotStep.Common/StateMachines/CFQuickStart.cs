@@ -61,6 +61,8 @@ namespace DotStep.Common.StateMachines
             }
         }
 
+
+        [Core.Action(ActionName = "s3:*")]
         public sealed class ProcessRegion : TaskState<Context, Done>
         {
             public override async Task<Context> Execute(Context context)

@@ -15,6 +15,8 @@ namespace DotStep.Common.Functions
         string MessageProcessingStateMachineArn { get; set; }
     }
 
+    [Core.Action(ActionName = "sqs:DeleteMessage")]
+    [Core.Action(ActionName = "sqs:ReceiveMessage")]
     public sealed class ProcessMessages<TContext> : LambdaFunction<TContext>
      where TContext : IQueueStatsContext, IMessageProcessingContext
     {

@@ -12,6 +12,7 @@
     <Company />
     <Product />
     <Description>Common Step Functions and Lambda Functions using the DotStep framework.</Description>
+    <Version>1.0.1</Version>
   </PropertyGroup>
 
   <ItemGroup>

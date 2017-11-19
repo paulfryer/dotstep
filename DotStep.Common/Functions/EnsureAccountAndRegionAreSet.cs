@@ -6,9 +6,10 @@ using System;
 
 namespace DotStep.Common.Functions
 {
+    [Core.Action(ActionName = "sts:GetCallerIdentity")]
     public sealed class EnsureAccountAndRegionAreSet<TContext> : LambdaFunction<TContext>
     where TContext : IRegionContext, IAccountContext
-    {
+    {        
         public override async Task<TContext> Execute(TContext context)
         {
             if (string.IsNullOrEmpty(context.AccountId))
