@@ -5,7 +5,7 @@ VisualStudioVersion = 15.0.27009.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DotStep.Core", "DotStep.Core\DotStep.Core.csproj", "{FEF6EDBA-1304-46CD-8A5E-EBCBA01E89E2}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DotStep.Common", "DotStep.StateMachines\DotStep.Common.csproj", "{B3AD619C-7DD6-4CD3-BFDA-6F639FA8F5AC}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DotStep.Common", "DotStep.Common\DotStep.Common.csproj", "{B3AD619C-7DD6-4CD3-BFDA-6F639FA8F5AC}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DotStep.Builder", "DotStep.Builder\DotStep.Builder.csproj", "{6C1FD958-AE50-4A32-8E55-1B06C58956A9}"
 EndProject

@@ -1,10 +1,8 @@
 .vs
 /DotStep.Core/bin
 /DotStep.Core/obj
-/Tests/bin
-/Tests/obj
-/Tests/deployment
-/Tests/extract
-/DotStep.StateMachines/bin
-/DotStep.StateMachines/obj
+/DotStep.Builder/bin
+/DotStep.Builder/obj
+/DotStep.Common/bin
+/DotStep.Common/obj
 
