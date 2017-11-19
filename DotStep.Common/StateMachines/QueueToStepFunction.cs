@@ -27,8 +27,10 @@ namespace DotStep.Common.StateMachines
             public string MessageProcessingStateMachineArn { get; set; }
         }
 
+        [Action(ActionName = "sts:GetCallerIdentity")]
         public class EnsureAccountAndRegionAreSet : ReferencedTaskState<Context, Initialize, EnsureAccountAndRegionAreSet<Context>> { }
 
+        [Action(ActionName = "states:ListExecutions")]
         public class Initialize : ReferencedTaskState<Context, DetermineExecutionBehavior, GetExecutionInfo<Context>> { }
 
         public class DetermineExecutionBehavior : ChoiceState<Done>
@@ -39,6 +41,7 @@ namespace DotStep.Common.StateMachines
             };
         }
 
+        [Action(ActionName = "sqs:GetQueueAttributes")]
         public class GetQueueStats : ReferencedTaskState<Context, DetermineProcessingBehavior, GetQueueStats<Context>> { }
         
         public class DetermineProcessingBehavior : ChoiceState<Done>
@@ -51,6 +54,8 @@ namespace DotStep.Common.StateMachines
             };
         }
 
+        [Action(ActionName = "sqs:DeleteMessage")]
+        [Action(ActionName = "sqs:ReceiveMessage")]
         public class ProcessMessages : ReferencedTaskState<Context, Wait, ProcessMessages<Context>> { }
 
         public class Wait : WaitState<GetQueueStats>

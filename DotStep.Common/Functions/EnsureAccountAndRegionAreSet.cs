@@ -6,7 +6,7 @@ using System;
 
 namespace DotStep.Common.Functions
 {
-    [Core.Action(ActionName = "sts:GetCallerIdentity")]
+   
     public sealed class EnsureAccountAndRegionAreSet<TContext> : LambdaFunction<TContext>
     where TContext : IRegionContext, IAccountContext
     {        

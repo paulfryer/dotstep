@@ -13,7 +13,7 @@ namespace DotStep.Common.Functions
         bool AtLeastOneExecutionRunning { get; set; }
     }
 
-    [Core.Action(ActionName = "states:ListExecutions")]
+  
     public sealed class GetExecutionInfo<TContext> : LambdaFunction<TContext> 
         where TContext : IGetExecutionInfoContext
     {
