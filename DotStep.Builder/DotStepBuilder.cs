@@ -71,8 +71,8 @@ namespace DotStep.Builder
                 lambdaNames.Add(lambdaName);
                 var assemblyName = stateMachine.GetType().GetTypeInfo().Assembly.GetName().Name;
                 var namespaceName = stateMachine.GetType().GetTypeInfo().Namespace;
-
-                var handler = $"{assemblyName}::{namespaceName}.{stateMachineType.Name}.{state.Name}::Execute";
+                 
+                var handler = $"{assemblyName}::{namespaceName}.{stateMachineType.Name}+{state.Name}::Execute";
 
                 var memory = state.GetAttributeValue((FunctionMemory a) => a.Memory, DefaultMemory);
                 var timeout = state.GetAttributeValue((FunctionTimeout a) => a.Timeout, DefaultTimeout);

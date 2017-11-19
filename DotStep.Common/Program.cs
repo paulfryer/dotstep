@@ -18,6 +18,12 @@ namespace DotStep.Common
         }
 
         public static async Task Test() {
+
+            var lambda = new DotStep.Common.StateMachines.QueueToStepFunction.EnsureAccountAndRegionAreSet();
+
+            var type = lambda.GetType();
+
+
             var context = new QueueToStepFunction.Context {
                 StateMachineName = "SimpleCalculator-10YP6MNZ2ESA",
                 JobQueueName = "tiger-item",
