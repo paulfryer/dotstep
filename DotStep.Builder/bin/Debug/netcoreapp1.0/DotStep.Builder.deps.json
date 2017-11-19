@@ -1,16 +1,16 @@
 {
   "runtimeTarget": {
     "name": ".NETCoreApp,Version=v1.0",
-    "signature": "448134b77ec8ca0e6445b8e9b9e73c11c351eefe"
+    "signature": "a57a3690c84f0cd360f3dc33a3edba265804b3aa"
   },
   "compilationOptions": {},
   "targets": {
     ".NETCoreApp,Version=v1.0": {
-      "DotStep.Builder/1.1.3": {
+      "DotStep.Builder/1.2.0": {
         "dependencies": {
           "AWSSDK.IdentityManagement": "3.3.5.2",
           "AWSSDK.S3": "3.3.11.4",
-          "DotStep.Core": "1.0.5",
+          "DotStep.Core": "1.1.0",
           "Mono.Cecil": "0.10.0-beta6",
           "Newtonsoft.Json": "9.0.1",
           "System.Runtime.Loader": "4.3.0"
@@ -60,7 +60,7 @@
           "lib/netstandard1.3/AWSSDK.S3.dll": {}
         }
       },
-      "DotStep.Core/1.0.5": {
+      "DotStep.Core/1.1.0": {
         "dependencies": {
           "Amazon.Lambda.Core": "1.0.0",
           "Amazon.Lambda.Serialization.Json": "1.1.0",
@@ -162,7 +162,7 @@
     }
   },
   "libraries": {
-    "DotStep.Builder/1.1.3": {
+    "DotStep.Builder/1.2.0": {
       "type": "project",
       "serviceable": false,
       "sha512": ""
@@ -202,12 +202,12 @@
       "path": "awssdk.s3/3.3.11.4",
       "hashPath": "awssdk.s3.3.3.11.4.nupkg.sha512"
     },
-    "DotStep.Core/1.0.5": {
+    "DotStep.Core/1.1.0": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-uRt268g6va9dH0IfIfo4M5jtaf80DMChdfkUI0+oC/VlayqeKd6uGu4voICES+VzhrGZ5JeXF6T4G6+vW/Tb1w==",
-      "path": "dotstep.core/1.0.5",
-      "hashPath": "dotstep.core.1.0.5.nupkg.sha512"
+      "sha512": "sha512-7imbBZq9DijEds2Qzrqo21XN3LF4TngaRrT/59deTluzL5UNvztixsNi3KbV1sJlh9VDoC7o8l0zb61YerHAFw==",
+      "path": "dotstep.core/1.1.0",
+      "hashPath": "dotstep.core.1.1.0.nupkg.sha512"
     },
     "Microsoft.NETCore.Platforms/1.1.0": {
       "type": "package",

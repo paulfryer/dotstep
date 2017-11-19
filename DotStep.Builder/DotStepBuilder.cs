@@ -64,7 +64,7 @@ namespace DotStep.Builder
             
 
             var lambdaNames = new List<String>();
-
+             
             foreach (var state in stateMachine.States.Where(s => s is ITaskState))
             {
                 var lambdaName = $"{stateMachineName}-{state.Name}";
@@ -72,7 +72,7 @@ namespace DotStep.Builder
                 var assemblyName = stateMachine.GetType().GetTypeInfo().Assembly.GetName().Name;
                 var namespaceName = stateMachine.GetType().GetTypeInfo().Namespace;
 
-                var handler = $"{assemblyName}::{namespaceName}.{state.Name}::Execute";
+                var handler = $"{assemblyName}::{namespaceName}.{stateMachineType.Name}.{state.Name}::Execute";
 
                 var memory = state.GetAttributeValue((FunctionMemory a) => a.Memory, DefaultMemory);
                 var timeout = state.GetAttributeValue((FunctionTimeout a) => a.Timeout, DefaultTimeout);
