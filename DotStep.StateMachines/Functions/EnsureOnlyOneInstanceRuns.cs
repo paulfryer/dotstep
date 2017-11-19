@@ -5,7 +5,7 @@ using Amazon.StepFunctions.Model;
 using System;
 using System.Linq;
 
-namespace DotStep.StateMachines.Functions
+namespace DotStep.Common.Functions
 {
     public interface IGetExecutionInfoContext : IAccountContext, IRegionContext
     {

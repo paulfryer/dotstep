@@ -7,10 +7,11 @@ using Amazon.StepFunctions;
 using Amazon.StepFunctions.Model;
 using DotStep.Core;
 
-namespace DotStep.StateMachines.Functions
+namespace DotStep.Common.Functions
 {
     public interface IMessageProcessingContext
     {
+        string MessageProcessingStateMachineName { get; set; }
         string MessageProcessingStateMachineArn { get; set; }
     }
 
@@ -23,6 +24,8 @@ namespace DotStep.StateMachines.Functions
 
         public override async Task<TContext> Execute(TContext context)
         {
+            context.MessageProcessingStateMachineArn = $"arn:aws:states:{context.RegionCode}:{context.AccountId}:stateMachine:{context.MessageProcessingStateMachineName}";
+
             var maxMessages = context.JobProcessingCapacity < 10 ?
                 context.JobProcessingCapacity : 10;
             var receiveMessageResult = await sqs.ReceiveMessageAsync(new ReceiveMessageRequest

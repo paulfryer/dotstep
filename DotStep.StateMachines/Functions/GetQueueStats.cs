@@ -4,7 +4,7 @@ using DotStep.Core;
 using Amazon.SQS;
 using Amazon.SQS.Model;
 
-namespace DotStep.StateMachines.Functions
+namespace DotStep.Common.Functions
 {
     public interface IQueueStatsContext : IAccountContext, IRegionContext
     {

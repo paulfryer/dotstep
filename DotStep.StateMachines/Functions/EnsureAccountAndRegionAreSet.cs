@@ -4,7 +4,7 @@ using Amazon.SecurityToken;
 using Amazon.SecurityToken.Model;
 using System;
 
-namespace DotStep.StateMachines.Functions
+namespace DotStep.Common.Functions
 {
     public sealed class EnsureAccountAndRegionAreSet<TContext> : LambdaFunction<TContext>
     where TContext : IRegionContext, IAccountContext

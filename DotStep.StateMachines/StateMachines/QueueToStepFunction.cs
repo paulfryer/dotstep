@@ -1,17 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 using DotStep.Core;
-using Amazon.SQS;
-using Amazon.SQS.Model;
-using Amazon.SecurityToken;
-using Amazon.SecurityToken.Model;
-using DotStep.StateMachines.Functions;
+using DotStep.Common.Functions;
 
-namespace DotStep.StateMachines.ThottledDynamoWriter
+namespace DotStep.Common.StateMachines
 {
 
-    public class ThrottledDynamoWriter : StateMachine<ThrottledDynamoWriter.EnsureAccountAndRegionAreSet>
+    public class QueueToStepFunction : StateMachine<QueueToStepFunction.EnsureAccountAndRegionAreSet>
     {
         public class Context : IGetExecutionInfoContext, IQueueStatsContext, IMessageProcessingContext
         {
@@ -25,12 +19,13 @@ namespace DotStep.StateMachines.ThottledDynamoWriter
             [Required]
             public int JobProcessingParallelSize { get; set; }
             public int JobProcessingCapacity { get; set; }
-            [Required]
-            public string MessageProcessingStateMachineArn { get; set; }
             public string JobQueueUrl { get; set; }
             public string AccountId { get; set; }
             public string RegionCode { get; set; }
             public bool NoMessagesProcessingOrWaiting { get; set; }
+            [Required]
+            public string MessageProcessingStateMachineName { get; set; }
+            public string MessageProcessingStateMachineArn { get; set; }
         }
 
         public class EnsureAccountAndRegionAreSet : ReferencedTaskState<Context, Initialize, EnsureAccountAndRegionAreSet<Context>> { }

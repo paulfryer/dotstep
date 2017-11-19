@@ -6,8 +6,8 @@
     <ApplicationIcon />
     <OutputTypeEx>library</OutputTypeEx>
     <StartupObject />
-    <AssemblyName>DotStep.StateMachines</AssemblyName>
-    <RootNamespace>DotStep.StateMachines</RootNamespace>
+    <AssemblyName>DotStep.Common</AssemblyName>
+    <RootNamespace>DotStep.Common</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
