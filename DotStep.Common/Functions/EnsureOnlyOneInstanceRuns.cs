@@ -10,7 +10,7 @@ namespace DotStep.Common.Functions
     public interface IGetExecutionInfoContext : IAccountContext, IRegionContext
     {
         string StateMachineName { get; set; }
-        bool AtLeastOneExecutionRunning { get; set; }
+        int RunningExecutionsCount { get; set; }
     }
 
   
@@ -27,7 +27,7 @@ namespace DotStep.Common.Functions
                     StateMachineArn = stateMachineArn
                 });
 
-                context.AtLeastOneExecutionRunning = historyResult.Executions.Any(e => e.Status.Value == "RUNNING");
+                context.RunningExecutionsCount = historyResult.Executions.Where(e => e.Status.Value == "RUNNING").Count();
 
             return context;
         }

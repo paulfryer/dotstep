@@ -10,7 +10,7 @@ namespace DotStep.Common.StateMachines
         {
             [Required]
             public string StateMachineName { get; set; }
-            public bool AtLeastOneExecutionRunning { get; set;}
+            public int RunningExecutionsCount { get; set;}
             public int MessagesWaitingForProcessing { get; set; }
             public int MessagesProcessing { get; set; }
             [Required]
@@ -38,7 +38,7 @@ namespace DotStep.Common.StateMachines
         {
             public override List<Choice> Choices => new List<Choice>
             {
-                new Choice<GetQueueStats, Context>(c => c.AtLeastOneExecutionRunning == false)
+                new Choice<GetQueueStats, Context>(c => c.RunningExecutionsCount <= 1)
             };
         }
 
