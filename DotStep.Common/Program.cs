@@ -1,6 +1,6 @@
 using Amazon.StepFunctions;
 using Amazon.StepFunctions.Model;
-using DotStep.Builder;
+
 using DotStep.Core;
 using DotStep.Common.StateMachines;
 using Newtonsoft.Json;
@@ -11,7 +11,7 @@ namespace DotStep.Common
 {
     class Program
     {
-
+         
         static void Main(string[] args)
         {
             Test().Wait();

@@ -14,4 +14,3 @@ F:\Projects\dotstep\DotStep.Builder\obj\Debug\netcoreapp1.0\DotStep.Builder.Asse
 F:\Projects\dotstep\DotStep.Builder\obj\Debug\netcoreapp1.0\DotStep.Builder.AssemblyInfo.cs
 F:\Projects\dotstep\DotStep.Builder\obj\Debug\netcoreapp1.0\DotStep.Builder.dll
 F:\Projects\dotstep\DotStep.Builder\obj\Debug\netcoreapp1.0\DotStep.Builder.pdb
-F:\Projects\dotstep\DotStep.Builder\obj\Debug\netcoreapp1.0\DotStep.Builder.csprojResolveAssemblyReference.cache
