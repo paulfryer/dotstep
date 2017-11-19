@@ -1,6 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Amazon.Lambda;
+using Amazon.Lambda.Model;
 using Amazon.SQS;
 using Amazon.SQS.Model;
 using Amazon.StepFunctions;
@@ -10,23 +12,22 @@ using DotStep.Core;
 namespace DotStep.Common.Functions
 {
     public interface IMessageProcessingContext
-    {
-        string MessageProcessingStateMachineName { get; set; }
-        string MessageProcessingStateMachineArn { get; set; }
+    { 
+        string MessageProcessorType { get; set; }
+        string MessageProcessorName { get; set; }
+        
     }
-
-
+    
     public sealed class ProcessMessages<TContext> : LambdaFunction<TContext>
      where TContext : IQueueStatsContext, IMessageProcessingContext
     {
 
         IAmazonStepFunctions stepFunctions = new AmazonStepFunctionsClient();
+        IAmazonLambda lambda = new AmazonLambdaClient();
         IAmazonSQS sqs = new AmazonSQSClient();
 
         public override async Task<TContext> Execute(TContext context)
-        {
-            context.MessageProcessingStateMachineArn = $"arn:aws:states:{context.RegionCode}:{context.AccountId}:stateMachine:{context.MessageProcessingStateMachineName}";
-
+        {            
             var maxMessages = context.JobProcessingCapacity < 10 ?
                 context.JobProcessingCapacity : 10;
             var receiveMessageResult = await sqs.ReceiveMessageAsync(new ReceiveMessageRequest
@@ -36,19 +37,38 @@ namespace DotStep.Common.Functions
             });
 
             if (receiveMessageResult.Messages.Count > 0) {
-                var startTasks = new List<Task>();
+                var tasks = new List<Task>();
                 foreach (var message in receiveMessageResult.Messages)
                 {
-                    var startTask = stepFunctions.StartExecutionAsync(
-                        new StartExecutionRequest
-                        {
-                            Input = message.Body,
-                            StateMachineArn = context.MessageProcessingStateMachineArn,
-                            Name = message.MessageId
-                        });
-                    startTasks.Add(startTask);
+                    Task task = null; 
+                    switch (context.MessageProcessorType)
+                    {
+                        case "Lambda":
+                            var lambdaArn = $"arn:aws:{context.RegionCode}:{context.AccountId}:function:{context.MessageProcessorName}";
+                            task = lambda.InvokeAsync(
+                                new InvokeRequest
+                                {
+                                    FunctionName = context.MessageProcessorName,
+                                    Payload = message.Body,
+                                    InvocationType = InvocationType.Event,
+                                    ClientContext = GetType().Name
+                                });
+                            break;
+                        case "StepFunction":
+                            task = stepFunctions.StartExecutionAsync(
+                                new StartExecutionRequest
+                                {
+                                    Input = message.Body,
+                                    StateMachineArn = $"arn:aws:states:{context.RegionCode}:{context.AccountId}:stateMachine:{context.MessageProcessorName}",
+                                    Name = message.MessageId
+                                });
+                            break;
+                        default:
+                            throw new System.Exception($"Unsupported MessageProcessorType: {context.MessageProcessorType}");
+                    }
+                    tasks.Add(task);
                 }
-                await Task.WhenAll(startTasks);
+                await Task.WhenAll(tasks);
 
                 var deleteResult = await sqs.DeleteMessageBatchAsync(new DeleteMessageBatchRequest
                 {

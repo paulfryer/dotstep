@@ -19,21 +19,22 @@ namespace DotStep.Common
 
         public static async Task Test() {
 
-            var lambda = new DotStep.Common.StateMachines.QueueToStepFunction.EnsureAccountAndRegionAreSet();
+            var lambda = new DotStep.Common.StateMachines.ThrottledProcessor.EnsureAccountAndRegionAreSet();
 
             var type = lambda.GetType();
 
 
-            var context = new QueueToStepFunction.Context {
-                StateMachineName = "SimpleCalculator-10YP6MNZ2ESA",
+            var context = new ThrottledProcessor.Context {
+                StateMachineName = "QueueToStepFunction-mIdf0XJZ3l94",
                 JobQueueName = "tiger-item",
                 JobProcessingParallelSize = 10,
-                MessageProcessingStateMachineName = "HelloWorldStateMachine-KYZ4RKL7JQVF"
+                MessageProcessorName = "write-event-test",
+                MessageProcessorType = "Lambda"
             };
             
-            var engine = new StateMachineEngine<QueueToStepFunction, QueueToStepFunction.Context>(context);
+            var engine = new StateMachineEngine<ThrottledProcessor, ThrottledProcessor.Context>(context);
 
-            var sm = new QueueToStepFunction();
+            var sm = new ThrottledProcessor();
             var description = sm.Describe("region", "account");
 
             await engine.Start();

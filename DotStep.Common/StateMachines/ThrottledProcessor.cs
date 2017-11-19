@@ -4,7 +4,7 @@ using DotStep.Common.Functions;
 
 namespace DotStep.Common.StateMachines
 {
-    public class QueueToStepFunction : StateMachine<QueueToStepFunction.EnsureAccountAndRegionAreSet>
+    public class ThrottledProcessor : StateMachine<ThrottledProcessor.EnsureAccountAndRegionAreSet>
     {
         public class Context : IGetExecutionInfoContext, IQueueStatsContext, IMessageProcessingContext
         {
@@ -23,8 +23,9 @@ namespace DotStep.Common.StateMachines
             public string RegionCode { get; set; }
             public bool NoMessagesProcessingOrWaiting { get; set; }
             [Required]
-            public string MessageProcessingStateMachineName { get; set; }
-            public string MessageProcessingStateMachineArn { get; set; }
+            public string MessageProcessorType { get; set; }
+            [Required]
+            public string MessageProcessorName { get; set; }
         }
 
         [Action(ActionName = "sts:GetCallerIdentity")]
@@ -56,6 +57,7 @@ namespace DotStep.Common.StateMachines
 
         [Action(ActionName = "sqs:DeleteMessage")]
         [Action(ActionName = "sqs:ReceiveMessage")]
+        [Action(ActionName = "states:StartExecution")]
         public class ProcessMessages : ReferencedTaskState<Context, Wait, ProcessMessages<Context>> { }
 
         public class Wait : WaitState<GetQueueStats>
