@@ -12,6 +12,7 @@ namespace DotStep.StateMachines.Functions
         string StateMachineName { get; set; }
         bool AtLeastOneExecutionRunning { get; set; }
     }
+    
 
     public sealed class GetExecutionInfo<TContext> : LambdaFunction<TContext> 
         where TContext : IGetExecutionInfoContext

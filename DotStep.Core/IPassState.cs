@@ -1,6 +1,6 @@
 ﻿namespace DotStep.Core
 {
-    public interface IPassState
+    public interface IPassState : IState
     {
 
     }

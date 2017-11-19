@@ -2,8 +2,6 @@ using Amazon.StepFunctions;
 using Amazon.StepFunctions.Model;
 using DotStep.Builder;
 using DotStep.Core;
-using DotStep.StateMachines.StepFunctionDeployment;
-using DotStep.StateMachines.StepFunctionQueue;
 using DotStep.StateMachines.ThottledDynamoWriter;
 using Newtonsoft.Json;
 using System.Collections.Generic;
@@ -23,7 +21,10 @@ namespace DotStep.StateMachines
 
         public static async Task Test() {
             var context = new ThrottledDynamoWriter.Context {
-                StateMachineName = "SimpleCalculator-10YP6MNZ2ESA"
+                StateMachineName = "SimpleCalculator-10YP6MNZ2ESA",
+                JobQueueName = "tiger-item",
+                JobProcessingParallelSize = 10,
+                MessageProcessingStateMachineArn = "arn:aws:states:us-west-2:072676109536:stateMachine:HelloWorldStateMachine-KYZ4RKL7JQVF"
             };
 
 
@@ -41,6 +42,7 @@ namespace DotStep.StateMachines
         {
             IAmazonStepFunctions stepFunctions = new LocalStepFunctionsService();
 
+            /*
             var context = new SFQueueContext
             {
                 Region = "us-west-2",
@@ -50,7 +52,7 @@ namespace DotStep.StateMachines
                 EnrichmentEndpoint = "https://www.example.com/endpoint",
                 ParallelLevel = 10
             };
-
+            */
             /*
             var startResult = await stepFunctions.StartExecutionAsync(new StartExecutionRequest
             {
@@ -60,8 +62,8 @@ namespace DotStep.StateMachines
             */
 
 
-            var engine = new StateMachineEngine<StepFunctionQueueStateMachine, SFQueueContext>(context);
-            await engine.Start();
+            //var engine = new StateMachineEngine<StepFunctionQueueStateMachine, SFQueueContext>(context);
+            //await engine.Start();
 
         }
     }

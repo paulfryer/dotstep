@@ -6,5 +6,4 @@ namespace DotStep.Core
     public class Action : Attribute {
         public string ActionName { get; set; }
     }
-
 }

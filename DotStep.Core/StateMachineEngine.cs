@@ -19,7 +19,7 @@ namespace DotStep.Core
         }
 
         public async Task Start()
-        {
+        { 
             await ChangeState(stateMachine.StartAt);
         }
 
@@ -30,6 +30,9 @@ namespace DotStep.Core
                 Console.WriteLine("Changing state to: " + type.Name);
 
                 var state = Activator.CreateInstance(type) as IState;
+
+                if (state.End)                
+                    return;                
 
                 if (state is ITaskState<TContext>)                
                 {
@@ -87,7 +90,9 @@ namespace DotStep.Core
                         {
                             useDefault = false;
                             await ChangeState(choice.Next);
-                        }                            
+                            break;
+                        }
+                        
                     }
                     if (useDefault)
                         await ChangeState(choiceState.Default);
@@ -95,14 +100,14 @@ namespace DotStep.Core
                 else if (state is IWaitState)
                 {
                     var waitState = state as IWaitState;
-                    await Task.Delay(waitState.Seconds);
+                    await Task.Delay(waitState.Seconds * 1000);
                     await ChangeState(waitState.Next);
                 }
                 else if (state is IPassState)
                 {
                     // nothing to do here..
                     var passSate = state as IPassState;
-
+                    
                 }
                 else if (state is IParallelState<TContext>) {
                     var parallelState = state as IParallelState<TContext>;
