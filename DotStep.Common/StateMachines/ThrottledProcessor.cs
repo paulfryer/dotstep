@@ -58,6 +58,7 @@ namespace DotStep.Common.StateMachines
         [Action(ActionName = "sqs:DeleteMessage")]
         [Action(ActionName = "sqs:ReceiveMessage")]
         [Action(ActionName = "states:StartExecution")]
+        [Action(ActionName = "lambda:InvokeFunction")]
         public class ProcessMessages : ReferencedTaskState<Context, Wait, ProcessMessages<Context>> { }
 
         public class Wait : WaitState<GetQueueStats>
