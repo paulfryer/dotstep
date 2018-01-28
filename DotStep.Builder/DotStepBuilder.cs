@@ -173,7 +173,7 @@ namespace DotStep.Builder
                     Properties = new
                     {
                         FunctionName = lambdaName,
-                        Runtime = "dotnetcore1.0",
+                        Runtime = "dotnetcore2.0",
                         Handler = handler,
                         Timeout = timeout,
                         MemorySize = memory,

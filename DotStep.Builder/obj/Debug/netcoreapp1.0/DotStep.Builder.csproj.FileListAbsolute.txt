@@ -6,3 +6,12 @@
 /Users/pfryer/Projects/dotstep/DotStep.Builder/obj/Debug/netcoreapp1.0/DotStep.Builder.AssemblyInfo.cs
 /Users/pfryer/Projects/dotstep/DotStep.Builder/obj/Debug/netcoreapp1.0/DotStep.Builder.dll
 /Users/pfryer/Projects/dotstep/DotStep.Builder/obj/Debug/netcoreapp1.0/DotStep.Builder.pdb
+F:\Projects\dotstep\DotStep.Builder\bin\Debug\netcoreapp1.0\DotStep.Builder.deps.json
+F:\Projects\dotstep\DotStep.Builder\bin\Debug\netcoreapp1.0\DotStep.Builder.dll
+F:\Projects\dotstep\DotStep.Builder\bin\Debug\netcoreapp1.0\DotStep.Builder.pdb
+F:\Projects\dotstep\DotStep.Builder\obj\Debug\netcoreapp1.0\DotStep.Builder.csprojResolveAssemblyReference.cache
+F:\Projects\dotstep\DotStep.Builder\obj\Debug\netcoreapp1.0\DotStep.Builder.csproj.CoreCompileInputs.cache
+F:\Projects\dotstep\DotStep.Builder\obj\Debug\netcoreapp1.0\DotStep.Builder.AssemblyInfoInputs.cache
+F:\Projects\dotstep\DotStep.Builder\obj\Debug\netcoreapp1.0\DotStep.Builder.AssemblyInfo.cs
+F:\Projects\dotstep\DotStep.Builder\obj\Debug\netcoreapp1.0\DotStep.Builder.dll
+F:\Projects\dotstep\DotStep.Builder\obj\Debug\netcoreapp1.0\DotStep.Builder.pdb
