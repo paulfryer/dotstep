@@ -1,5 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using Amazon;
@@ -48,22 +50,22 @@ namespace DotStep.Common.StateMachines
             }
         }
 
-        public sealed class ForEachRegion : ChoiceState
+        public sealed class ForEachRegion : ChoiceState<SaveMarkdown>
         {
             public override List<Choice> Choices
             {
                 get
                 {
                     return new List<Choice>{
-                    new Choice<Done, Context>(c => c.RegionsLeftToProcess > 0)
-                };
+                        new Choice<ProcessRegion, Context>(c => c.RegionsLeftToProcess > 0)
+                    };
                 }
             }
         }
 
 
         [Core.Action(ActionName = "s3:*")]
-        public sealed class ProcessRegion : TaskState<Context, Done>
+        public sealed class ProcessRegion : TaskState<Context, ForEachRegion>
         {
             public override async Task<Context> Execute(Context context)
             {
@@ -72,7 +74,7 @@ namespace DotStep.Common.StateMachines
                 var bucketName = $"dotstep-{regionCode}";
 
                 IAmazonS3 s3 = new AmazonS3Client(region);
-                if (await s3.DoesS3BucketExistAsync(bucketName))
+                if (!await s3.DoesS3BucketExistAsync(bucketName))
                 {
                     var createResult = await s3.PutBucketAsync(new PutBucketRequest
                     {
@@ -82,16 +84,26 @@ namespace DotStep.Common.StateMachines
                     });
                 }
 
-                var objectName = context.ProjectName.ToLower();
+                string json;
+
+                using (var netClient = new WebClient())
+                    json = netClient.DownloadString(new Uri("https://raw.githubusercontent.com/paulfryer/dotstep-starter/master/DotStepStarterTemplate.json"));
+
+                var objectName = $"{context.ProjectName.ToLower()}-template.json";
                 var putObjectResult = await s3.PutObjectAsync(new PutObjectRequest
                 {
                     BucketName = bucketName,
-                    Key = objectName
+                    Key = objectName,
+                    ContentType = "application/json",
+                    ContentBody = json,
+                    CannedACL = S3CannedACL.PublicRead
                 });
 
-                var consoleLink = $"https://{regionCode}.console.aws.amazon.com/cloudformation/home?region={regionCode}#/stacks/create/review?templateURL=https://s3-{regionCode}.amazonaws.com/{objectName}&stackName={context.ProjectName}&param_SourceCodeZip={context.ProjectZipLocation}&param_SourceCodeDirectory={context.SourceCodeDirectory}";
+                var consoleLink = $"https://{regionCode}.console.aws.amazon.com/cloudformation/home?region={regionCode}#/stacks/create/review?templateURL=https://s3.amazonaws.com/{bucketName}/{objectName}&stackName={context.ProjectName}&param_SourceCodeZip={context.ProjectZipLocation}&param_SourceCodeDirectory={context.SourceCodeDirectory}";
 
                 context.RegionalLinks.Add(regionCode, consoleLink);
+                context.RegionsToProcess.RemoveAt(0);
+                context.RegionsLeftToProcess--;
 
                 return context;
             }

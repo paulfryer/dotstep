@@ -14,10 +14,26 @@ namespace DotStep.Common
          
         static void Main(string[] args)
         {
-            Test().Wait();
+            TestCFQuickStart().Wait();
         }
 
-        public static async Task Test() {
+        public static async Task TestCFQuickStart() {
+
+            var context = new CFQuickStartStateMachine.Context
+            {
+               ProjectName = "dotstep-starter",
+               SourceCodeDirectory = "dotstep-starter-master",
+               ProjectZipLocation = "https://github.com/paulfryer/dotstep-starter/archive/master.zip"
+            };
+
+            var engine = new StateMachineEngine<CFQuickStartStateMachine, CFQuickStartStateMachine.Context>(context);
+            var sm = new CFQuickStartStateMachine();
+            await engine.Start();
+
+        }
+
+
+        public static async Task TestThrottledProcessor() {
 
             var lambda = new DotStep.Common.StateMachines.ThrottledProcessor.EnsureAccountAndRegionAreSet();
 
