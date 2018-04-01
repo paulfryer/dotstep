@@ -72,4 +72,11 @@ Once the function is deployed trying sending the following Input:
 { "Name": "Jon Doe" }
 
 
+Public Repositories with DotStep Projects
+
+<script language="javascript">
+  alert('test');
+</script>
+
+
 
