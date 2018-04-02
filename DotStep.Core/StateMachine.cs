@@ -18,16 +18,44 @@ namespace DotStep.Core
             }
         }
 
+
+        public IEnumerable<Type> StateTypes
+        {
+            get
+            {
+                var nestedTypes = GetType().GetTypeInfo().GetMembers()
+                    .Where(member => member.MemberType == MemberTypes.NestedType);
+
+                foreach (dynamic nestedType in nestedTypes)
+                {
+                    if ((nestedType.ImplementedInterfaces as Type[]).Any(t => typeof(IState).IsAssignableFrom(t)))
+                        yield return nestedType;
+                }
+
+
+                /*
+             &&
+                typeof(IState).IsAssignableFrom(member.DeclaringType))
+                .Select(t => (IState)Activator.CreateInstance(t.DeclaringType));
+                */
+
+                /*
+                return GetType().GetTypeInfo().Assembly.GetTypes()
+                                     .Where(t => typeof(IState).IsAssignableFrom(t) &&
+                                            t.GetTypeInfo().IsClass &&
+                                            t.GetTypeInfo().IsSealed &&
+                                            t.Namespace == StartAt.Namespace)
+                                         .Select(t => (IState)Activator.CreateInstance(t));*/
+            }
+        }
+
         public IEnumerable<IState> States
         {
             get
             {
                 var nestedTypes = GetType().GetTypeInfo().GetMembers()
-                    .Where(member => member.MemberType == MemberTypes.NestedType 
-                   
-                    );
-
-
+                    .Where(member => member.MemberType == MemberTypes.NestedType);
+                
                 foreach (dynamic nestedType in nestedTypes) {
                     if ((nestedType.ImplementedInterfaces as Type[]).Any(t => typeof(IState).IsAssignableFrom(t)))
                         yield return (IState)Activator.CreateInstance(nestedType);
@@ -62,10 +90,10 @@ namespace DotStep.Core
 
 
             var appendComma = false;
-            foreach (var state in States)
+            foreach (var stateType in StateTypes)
             {
                 if (appendComma) sb.Append(",");
-                DescribeState(sb, state, region, accountId);
+                DescribeState(sb, stateType, region, accountId);
                 appendComma = true;
             }
 
@@ -80,20 +108,19 @@ namespace DotStep.Core
             return formattedJson;
         }
 
-        void DescribeState(StringBuilder sb, IState state, string region, string accountId)
+        void DescribeState(StringBuilder sb, Type stateType, string region, string accountId)
         {
-            sb.AppendLine("\"" + state.GetType().Name + "\" : { ");
+            sb.AppendLine("\"" + stateType.Name + "\" : { ");
 
-            if (state is ITaskState)
+            if (typeof(ITaskState).IsAssignableFrom(stateType))
             {
-                var taskState = state as ITaskState;
                 sb.AppendLine("\"Type\":\"Task\",");
-                sb.AppendLine($"\"Resource\":\"arn:aws:lambda:{region}:{accountId}:function:{GetType().Name}-{state.Name}\",");
-                sb.AppendLine($"\"Next\":\"{taskState.Next.Name}\"");
+                sb.AppendLine($"\"Resource\":\"arn:aws:lambda:{region}:{accountId}:function:{GetType().Name}-{stateType.Name}\",");
+                sb.AppendLine($"\"Next\":\"{stateType.BaseType.GenericTypeArguments[1].Name}\"");
             }
-            if (state is IChoiceState)
+            if (typeof(IChoiceState).IsAssignableFrom(stateType))
             {
-                var choiceState = state as IChoiceState;
+                var choiceState = Activator.CreateInstance(stateType) as IChoiceState;
                 sb.AppendLine("\"Type\":\"Choice\",");
                 sb.AppendLine("\"Choices\": [");
                 var appendComma = false;
@@ -119,21 +146,23 @@ namespace DotStep.Core
                     sb.AppendLine($"\"Default\": \"{choiceState.Default.Name}\"");
                 }
             }
-            if (state is IPassState)
+            if (typeof(IPassState).IsAssignableFrom(stateType))
             {
+                var passState = Activator.CreateInstance(stateType) as IPassState;
                 sb.AppendLine("\"Type\":\"Pass\",");
+                if (passState.End)
+                    sb.AppendLine("\"End\": true");
             }
-            if (state is IWaitState)
+            if (typeof(IWaitState).IsAssignableFrom(stateType))
             {
-                var waitState = state as IWaitState;
+                var waitState = Activator.CreateInstance(stateType) as IWaitState;
                 sb.AppendLine("\"Type\":\"Wait\",");
                 sb.AppendLine("\"Seconds\": " + waitState.Seconds + ",");
                 sb.AppendLine($"\"Next\":\"{waitState.Next.Name}\"");
 
             }
 
-            if (state.End)
-                sb.AppendLine("\"End\": true");
+
 
             sb.AppendLine("}");
         }

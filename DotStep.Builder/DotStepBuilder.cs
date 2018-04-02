@@ -1,30 +1,59 @@
-﻿using Amazon.IdentityManagement;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Reflection;
+using System.Text;
+using Amazon.IdentityManagement;
 using Amazon.IdentityManagement.Model;
-using Amazon.S3;
-using Amazon.S3.Model;
 using DotStep.Core;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.IO.Compression;
-using System.Linq;
-using System.Reflection;
-using System.Threading.Tasks;
+using Action = DotStep.Core.Action;
 
 namespace DotStep.Builder
 {
-
     public static class DotStepBuilder
     {
         public const int DefaultTimeout = 30;
         public const int DefaultMemory = 128;
 
+        public static void BuildTemplate(string publishLocation)
+        {
+            var publishDirectory = new DirectoryInfo(publishLocation);
+            var assemblyFiles = publishDirectory.EnumerateFiles().Where(file => file.Extension.ToLower() == ".dll");
+            var types = new List<Type>();
+            foreach (var assemblyFile in assemblyFiles)
+            {
+                var assembly = Assembly.LoadFile(assemblyFile.FullName);
+                types.AddRange(
+                    assembly.ExportedTypes.Where(t => t.IsClass && typeof(IStateMachine).IsAssignableFrom(t)));
+            }
 
-        public static string BuildCloudFormationTemplates(List<Type> stateMachineTypes){
+            var template = BuildCloudFormationTemplates(types);
+            File.WriteAllText("cf-template.json", template);
+        }
 
+        public static string BuildCloudFormationConfiguration(string s3Bucket, string s3Key)
+        {
+            var sb = new StringBuilder();
+            sb.Append("{ \"Parameters\" : {");
+            sb.Append($"\"CodeS3Bucket\" : \"{s3Bucket}\"");
+            sb.Append($"\"CodeS3Key\" : \"{s3Key}\"");
+            sb.Append("}}");
+
+            var json = sb.ToString();
+
+            var configObj = JsonConvert.DeserializeObject(json);
+
+            var formattedJson = JsonConvert.SerializeObject(configObj, Formatting.Indented);
+
+            return formattedJson;
+        }
+
+        public static string BuildCloudFormationTemplates(List<Type> stateMachineTypes)
+        {
             var template = new
             {
                 Parameters = new
@@ -41,8 +70,8 @@ namespace DotStep.Builder
                 Resources = new Dictionary<string, object>()
             };
 
-            foreach (var stateMachineType in stateMachineTypes) {
-
+            foreach (var stateMachineType in stateMachineTypes)
+            {
                 if (!typeof(IStateMachine).IsAssignableFrom(stateMachineType))
                     throw new Exception($"Type: {stateMachineType} doesn't implement {typeof(IStateMachine).Name}");
 
@@ -50,44 +79,51 @@ namespace DotStep.Builder
                 foreach (var resource in resources)
                     template.Resources.Add(resource.Key, resource.Value);
             }
-           
+
 
             return JsonConvert.SerializeObject(template, Formatting.Indented);
         }
 
-        private static Dictionary<string, object> BuildCloudFormationTemplateResources(Type stateMachineType, bool addActionsFromReflection = false)
+        private static Dictionary<string, object> BuildCloudFormationTemplateResources(Type stateMachineType,
+            bool addActionsFromReflection = false)
         {
             var stateMachine = Activator.CreateInstance(stateMachineType) as IStateMachine;
             var stateMachineName = stateMachine.GetType().Name;
 
             var resources = new Dictionary<string, object>();
-            
+
 
             var lambdaNames = new List<String>();
-             
-            foreach (var state in stateMachine.States.Where(s => s is ITaskState))
+
+            //var taskStates = stateMachine.States.Where(s => s is ITaskState).ToList();
+
+            var taskStateTypes = stateMachine.StateTypes.Where(t => typeof(ITaskState).IsAssignableFrom(t));
+
+
+            foreach (var stateType in taskStateTypes)
             {
-                var lambdaName = $"{stateMachineName}-{state.Name}";
+                var lambdaName = $"{stateMachineName}-{stateType.Name}";
                 lambdaNames.Add(lambdaName);
                 var assemblyName = stateMachine.GetType().GetTypeInfo().Assembly.GetName().Name;
                 var namespaceName = stateMachine.GetType().GetTypeInfo().Namespace;
-                 
-                var handler = $"{assemblyName}::{namespaceName}.{stateMachineType.Name}+{state.Name}::Execute";
 
-                var memory = state.GetAttributeValue((FunctionMemory a) => a.Memory, DefaultMemory);
-                var timeout = state.GetAttributeValue((FunctionTimeout a) => a.Timeout, DefaultTimeout);
+                var handler = $"{assemblyName}::{namespaceName}.{stateMachineType.Name}+{stateType.Name}::Execute";
+
+                var memory = stateType.GetAttributeValue((FunctionMemory a) => a.Memory, DefaultMemory);
+                var timeout = stateType.GetAttributeValue((FunctionTimeout a) => a.Timeout, DefaultTimeout);
 
                 var actions = new List<string>();
 
-                foreach (var customAction in state.GetType().GetTypeInfo().GetCustomAttributes<DotStep.Core.Action>())
+                foreach (var customAction in stateType.GetTypeInfo().GetCustomAttributes<Action>())
                 {
                     actions.Add(customAction.ActionName);
                 }
 
-                if (addActionsFromReflection) {
+                if (addActionsFromReflection)
+                {
                     var assembly = Assembly.Load(new AssemblyName(assemblyName));
                     var assemblyDefinition = AssemblyDefinition.ReadAssembly(assembly.Location);
-                    var type = assemblyDefinition.MainModule.Types.FirstOrDefault(t => t.Name == state.GetType().Name);
+                    var type = assemblyDefinition.MainModule.Types.FirstOrDefault(t => t.Name == stateType.Name);
                     var executeMethod = type.Methods.First(x => x.Name == "Execute");
                     var calls = executeMethod.Body
                         .Instructions.Where(x => x.OpCode == OpCodes.Call)
@@ -138,7 +174,8 @@ namespace DotStep.Builder
                                 Action = "sts:AssumeRole"
                             }
                         },
-                        ManagedPolicyArns = new List<string> {
+                        ManagedPolicyArns = new List<string>
+                        {
                             "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
                         },
                         Policies = new List<dynamic>()
@@ -148,21 +185,21 @@ namespace DotStep.Builder
                 if (actions.Any())
                 {
                     lambdaRole.Properties.Policies.Add(
-                            new
+                        new
+                        {
+                            PolicyName = $"{lambdaName}-Policy",
+                            PolicyDocument = new
                             {
-                                PolicyName = $"{lambdaName}-Policy",
-                                PolicyDocument = new
+                                Version = "2012-10-17",
+                                Statement = new
                                 {
-                                    Version = "2012-10-17",
-                                    Statement = new
-                                    {
-                                        Effect = actions.Any() ? "Allow" : "Deny",
-                                        Resource = "*",
-                                        Action = actions.Any() ? actions : new List<string> { "*" }
-                                    }
+                                    Effect = actions.Any() ? "Allow" : "Deny",
+                                    Resource = "*",
+                                    Action = actions.Any() ? actions : new List<string> {"*"}
                                 }
                             }
-                        );
+                        }
+                    );
                 }
 
                 resources.Add(lambdaRoleName.Replace("-", string.Empty), lambdaRole);
@@ -179,21 +216,24 @@ namespace DotStep.Builder
                         MemorySize = memory,
                         Code = new
                         {
-                            S3Bucket = new { Ref = "CodeS3Bucket" },
-                            S3Key = new { Ref = "CodeS3Key" }
+                            S3Bucket = new {Ref = "CodeS3Bucket"},
+                            S3Key = new {Ref = "CodeS3Key"}
                         },
-                        Role = new Dictionary<string, List<string>> {
-                            { "Fn::GetAtt", new List<string>{
-                                lambdaRoleName.Replace("-", string.Empty), "Arn"
-                            } }
+                        Role = new Dictionary<string, List<string>>
+                        {
+                            {
+                                "Fn::GetAtt", new List<string>
+                                {
+                                    lambdaRoleName.Replace("-", string.Empty),
+                                    "Arn"
+                                }
+                            }
                         }
                     }
                 };
 
                 resources.Add(lambdaName.Replace("-", string.Empty), functionResource);
-
             }
-
 
 
             var stateMachineRoleName = $"{stateMachineName}-Role";
@@ -211,34 +251,42 @@ namespace DotStep.Builder
                             Effect = "Allow",
                             Principal = new
                             {
-                                Service = new Dictionary<string, string> {
-                                    { "Fn::Sub", "states.${AWS::Region}.amazonaws.com" }
+                                Service = new Dictionary<string, string>
+                                {
+                                    {"Fn::Sub", "states.${AWS::Region}.amazonaws.com"}
                                 }
                             },
                             Action = "sts:AssumeRole"
                         }
                     },
-                    Policies = new List<dynamic> {
-                        new {
+                    Policies = new List<dynamic>
+                    {
+                        new
+                        {
                             PolicyName = $"{stateMachineName}-Policy",
                             PolicyDocument = new
+                            {
+                                Version = "2012-10-17",
+                                Statement = new List<dynamic>
                                 {
-                                    Version = "2012-10-17",
-                                    Statement = new List<dynamic> { new
-                                        {
-                                            Effect = "Allow",
-                                            Resource = lambdaNames.Select(lambdaName =>
-                                                new Dictionary<string, List<string>> {
+                                    new
+                                    {
+                                        Effect = "Allow",
+                                        Resource = lambdaNames.Select(lambdaName =>
+                                            new Dictionary<string, List<string>>
+                                            {
+                                                {
+                                                    "Fn::GetAtt", new List<string>
                                                     {
-                                                        "Fn::GetAtt", new List<string>{
-                                                                            lambdaName.Replace("-", string.Empty), "Arn"
-                                                                        }
+                                                        lambdaName.Replace("-", string.Empty),
+                                                        "Arn"
                                                     }
-                                                }),
-                                            Action = "lambda:InvokeFunction"
-                                        }
+                                                }
+                                            }),
+                                        Action = "lambda:InvokeFunction"
                                     }
                                 }
+                            }
                         }
                     }
                 }
@@ -252,20 +300,25 @@ namespace DotStep.Builder
                 Type = "AWS::StepFunctions::StateMachine",
                 Properties = new
                 {
-                    DefinitionString = new Dictionary<string, string> { { "Fn::Sub", definition } },
-                    RoleArn = new Dictionary<string, List<string>> {
-                            { "Fn::GetAtt", new List<string>{
-                                stateMachineRoleName.Replace("-", string.Empty), "Arn"
-                            } }
+                    DefinitionString = new Dictionary<string, string> {{"Fn::Sub", definition}},
+                    RoleArn = new Dictionary<string, List<string>>
+                    {
+                        {
+                            "Fn::GetAtt", new List<string>
+                            {
+                                stateMachineRoleName.Replace("-", string.Empty),
+                                "Arn"
+                            }
                         }
+                    }
                 }
-
             };
 
             resources.Add(stateMachineName, stateMachineResource);
 
             return resources;
         }
+
         /*
         public static async Task BuildStateMachine<TStateMachine>(string codeBuildLocation, string releaseDirectory = "bin//release") where TStateMachine : IStateMachine
         {
@@ -311,14 +364,14 @@ namespace DotStep.Builder
             File.WriteAllText($"{releaseDirectory}//config.json", config);
         }
         */
-        private static string GetAccountId() {
-
-            string accountId = GetCodeBuildArn().Split(':')[4];
+        private static string GetAccountId()
+        {
+            var accountId = GetCodeBuildArn().Split(':')[4];
 
             if (string.IsNullOrEmpty(accountId))
             {
                 IAmazonIdentityManagementService iam = new AmazonIdentityManagementServiceClient();
-                var getUserResult = iam.GetUserAsync(new GetUserRequest { }).Result;
+                var getUserResult = iam.GetUserAsync(new GetUserRequest()).Result;
                 accountId = getUserResult.User.Arn.Split(':')[4];
             }
 
@@ -333,22 +386,112 @@ namespace DotStep.Builder
         private static string GetRegion()
         {
             return Environment.GetEnvironmentVariable("AWS_DEFAULT_REGION") ??
-                GetCodeBuildArn().Split(':')[3];
+                   GetCodeBuildArn().Split(':')[3];
         }
 
         private static string GetCodeBuildArn()
         {
-            const string defaultCodeBuildArn = "arn:aws:codebuild:us-west-2:account-ID:build/codebuild-demo-project:b1e6661e-e4f2-4156-9ab9-82a19EXAMPLE";
+            const string defaultCodeBuildArn =
+                "arn:aws:codebuild:us-west-2:account-ID:build/codebuild-demo-project:b1e6661e-e4f2-4156-9ab9-82a19EXAMPLE";
             return Environment.GetEnvironmentVariable("CODEBUILD_BUILD_ARN") ??
-                defaultCodeBuildArn;
+                   defaultCodeBuildArn;
         }
     }
-    
 }
 
 
 public class DotStepUtil
 {
+    public static Dictionary<string, string> AmazonServiceNameToIAMNamespaceMappings =
+        new Dictionary<string, string>
+        {
+            {"APIGateway", "apigateway"},
+            {"AppStream", "appstream"},
+            {"Artifact", "artifact"},
+            {"AutoScaling", "autoscaling"},
+            {"BillingandCostManagement", "aws-portal"},
+            {"CertificateManager", "acm"},
+            {"CloudDirectory", "clouddirectory"},
+            {"CloudFormation", "cloudformation"},
+            {"CloudFront", "cloudfront"},
+            {"CloudHSM", "cloudhsm"},
+            {"CloudSearch", "cloudsearch"},
+            {"CloudTrail", "cloudtrail"},
+            {"CloudWatch", "cloudwatch"},
+            {"CloudWatchEvents", "events"},
+            {"CloudWatchLogs", "logs"},
+            {"CodeBuild", "codebuild"},
+            {"CodeCommit", "codecommit"},
+            {"CodeDeploy", "codedeploy"},
+            {"CodePipeline", "codepipeline"},
+            {"CodeStar", "codestar"},
+            {"CognitoYourUserPools", "cognito-idp"},
+            {"CognitoFederatedIdentities", "cognito-identity"},
+            {"CognitoSync", "cognito-sync"},
+            {"Config", "config"},
+            {"DataPipeline", "datapipeline"},
+            {"DatabaseMigrationService", "dms"},
+            {"DeviceFarm", "devicefarm"},
+            {"DirectConnect", "directconnect"},
+            {"DirectoryService", "ds"},
+            {"DynamoDB", "dynamodb"},
+            {"ElasticComputeCloud", "ec2"},
+            {"EC2ContainerRegistry", "ecr"},
+            {"EC2ContainerService", "ecs"},
+            {"EC2SystemsManager", "ssm"},
+            {"ElasticBeanstalk", "elasticbeanstalk"},
+            {"ElasticFileSystem", "elasticfilesystem"},
+            {"ElasticLoadBalancing", "elasticloadbalancing"},
+            {"EMR", "elasticmapreduce"},
+            {"ElasticTranscoder", "elastictranscoder"},
+            {"ElastiCache", "elasticache"},
+            {"ElasticsearchService(ES)", "es"},
+            {"GameLift", "gamelift"},
+            {"Glacier", "glacier"},
+            {"Glue", "glue"},
+            {"Health/PersonalHealthDashboard", "health"},
+            {"IdentityManagement", "iam"},
+            {"Import/Export", "importexport"},
+            {"Inspector", "inspector"},
+            {"IoT", "iot"},
+            {"KeyManagementService", "kms"},
+            {"KinesisAnalytics", "kinesisanalytics"},
+            {"KinesisFirehose", "firehose"},
+            {"KinesisStreams", "kinesis"},
+            {"Lambda", "lambda"},
+            {"Lightsail", "lightsail"},
+            {"MachineLearning", "machinelearning"},
+            {"Marketplace", "aws-marketplace"},
+            {"MarketplaceManagementPortal", "aws-marketplace-management"},
+            {"MobileAnalytics", "mobileanalytics"},
+            {"MobileHub", "mobilehub"},
+            {"OpsWorks", "opsworks"},
+            {"OpsWorksforChefAutomate", "opsworks-cm"},
+            {"Organizations", "organizations"},
+            {"Polly", "polly"},
+            {"Redshift", "redshift"},
+            {"RelationalDatabaseService", "rds"},
+            {"Route53", "route53"},
+            {"Route53Domains", "route53domains"},
+            {"SecurityToken", "sts"},
+            {"ServiceCatalog", "servicecatalog"},
+            {"SimpleEmailService", "ses"},
+            {"SimpleNotificationService", "sns"},
+            {"SQS", "sqs"},
+            {"S3", "s3"},
+            {"SimpleWorkflowService", "swf"},
+            {"SimpleDB", "sdb"},
+            {"StepFunctions", "states"},
+            {"StorageGateway", "storagegateway"},
+            {"Support", "support"},
+            {"TrustedAdvisor", "trustedadvisor"},
+            {"VirtualPrivateCloud", "ec2"},
+            {"WAF", "waf"},
+            {"WorkDocs", "workdocs"},
+            {"WorkMail", "workmail"},
+            {"WorkSpaces", "workspaces"}
+        };
+
     public static string GetIAMNamespace(string amazonService)
     {
         var iamNamespace = AmazonServiceNameToIAMNamespaceMappings
@@ -361,94 +504,4 @@ public class DotStepUtil
 
         return iamNamespace;
     }
-
-    public static Dictionary<string, string> AmazonServiceNameToIAMNamespaceMappings =
-        new Dictionary<string, string>
-        {
-                {"APIGateway", "apigateway"},
-                {"AppStream", "appstream"},
-                {"Artifact", "artifact"},
-                {"AutoScaling", "autoscaling"},
-                {"BillingandCostManagement", "aws-portal"},
-                {"CertificateManager", "acm"},
-                {"CloudDirectory", "clouddirectory"},
-                {"CloudFormation", "cloudformation"},
-                {"CloudFront", "cloudfront"},
-                {"CloudHSM", "cloudhsm"},
-                {"CloudSearch", "cloudsearch"},
-                {"CloudTrail", "cloudtrail"},
-                {"CloudWatch", "cloudwatch"},
-                {"CloudWatchEvents", "events"},
-                {"CloudWatchLogs", "logs"},
-                {"CodeBuild", "codebuild"},
-                {"CodeCommit", "codecommit"},
-                {"CodeDeploy", "codedeploy"},
-                {"CodePipeline", "codepipeline"},
-                {"CodeStar", "codestar"},
-                {"CognitoYourUserPools", "cognito-idp"},
-                {"CognitoFederatedIdentities", "cognito-identity"},
-                {"CognitoSync", "cognito-sync"},
-                {"Config", "config"},
-                {"DataPipeline", "datapipeline"},
-                {"DatabaseMigrationService", "dms"},
-                {"DeviceFarm", "devicefarm"},
-                {"DirectConnect", "directconnect"},
-                {"DirectoryService", "ds"},
-                {"DynamoDB", "dynamodb"},
-                {"ElasticComputeCloud", "ec2"},
-                {"EC2ContainerRegistry", "ecr"},
-                {"EC2ContainerService", "ecs"},
-                {"EC2SystemsManager", "ssm"},
-                {"ElasticBeanstalk", "elasticbeanstalk"},
-                {"ElasticFileSystem", "elasticfilesystem"},
-                {"ElasticLoadBalancing", "elasticloadbalancing"},
-                {"EMR", "elasticmapreduce"},
-                {"ElasticTranscoder", "elastictranscoder"},
-                {"ElastiCache", "elasticache"},
-                {"ElasticsearchService(ES)", "es"},
-                {"GameLift", "gamelift"},
-                {"Glacier", "glacier"},
-                {"Glue", "glue"},
-                {"Health/PersonalHealthDashboard", "health"},
-                {"IdentityManagement", "iam"},
-                {"Import/Export", "importexport"},
-                {"Inspector", "inspector"},
-                {"IoT", "iot"},
-                {"KeyManagementService", "kms"},
-                {"KinesisAnalytics", "kinesisanalytics"},
-                {"KinesisFirehose", "firehose"},
-                {"KinesisStreams", "kinesis"},
-                {"Lambda", "lambda"},
-                {"Lightsail", "lightsail"},
-                {"MachineLearning", "machinelearning"},
-                {"Marketplace", "aws-marketplace"},
-                {"MarketplaceManagementPortal", "aws-marketplace-management"},
-                {"MobileAnalytics", "mobileanalytics"},
-                {"MobileHub", "mobilehub"},
-                {"OpsWorks", "opsworks"},
-                {"OpsWorksforChefAutomate", "opsworks-cm"},
-                {"Organizations", "organizations"},
-                {"Polly", "polly"},
-                {"Redshift", "redshift"},
-                {"RelationalDatabaseService", "rds"},
-                {"Route53", "route53"},
-                {"Route53Domains", "route53domains"},
-                {"SecurityToken", "sts"},
-                {"ServiceCatalog", "servicecatalog"},
-                {"SimpleEmailService", "ses"},
-                {"SimpleNotificationService", "sns"},
-                {"SQS", "sqs"},
-                {"S3", "s3"},
-                {"SimpleWorkflowService", "swf"},
-                {"SimpleDB", "sdb"},
-                {"StepFunctions", "states"},
-                {"StorageGateway", "storagegateway"},
-                {"Support", "support"},
-                {"TrustedAdvisor", "trustedadvisor"},
-                {"VirtualPrivateCloud", "ec2"},
-                {"WAF", "waf"},
-                {"WorkDocs", "workdocs"},
-                {"WorkMail", "workmail"},
-                {"WorkSpaces", "workspaces"},
-    };
 }

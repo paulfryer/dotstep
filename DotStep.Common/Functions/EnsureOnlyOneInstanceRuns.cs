@@ -1,9 +1,8 @@
-﻿using System.Threading.Tasks;
-using DotStep.Core;
+﻿using System.Linq;
+using System.Threading.Tasks;
 using Amazon.StepFunctions;
 using Amazon.StepFunctions.Model;
-using System;
-using System.Linq;
+using DotStep.Core;
 
 namespace DotStep.Common.Functions
 {
@@ -13,21 +12,23 @@ namespace DotStep.Common.Functions
         int RunningExecutionsCount { get; set; }
     }
 
-  
-    public sealed class GetExecutionInfo<TContext> : LambdaFunction<TContext> 
+
+    public sealed class GetExecutionInfo<TContext> : LambdaFunction<TContext>
         where TContext : IGetExecutionInfoContext
     {
-        IAmazonStepFunctions stepFunctions = new AmazonStepFunctionsClient();                
-        public override async Task<TContext> Execute(TContext context) 
+        readonly IAmazonStepFunctions stepFunctions = new AmazonStepFunctionsClient();
+
+        public override async Task<TContext> Execute(TContext context)
         {
-            var stateMachineArn = $"arn:aws:states:{context.RegionCode}:{context.AccountId}:stateMachine:{context.StateMachineName}";
+            var stateMachineArn =
+                $"arn:aws:states:{context.RegionCode}:{context.AccountId}:stateMachine:{context.StateMachineName}";
 
-                var historyResult = await stepFunctions.ListExecutionsAsync(new ListExecutionsRequest
-                {                    
-                    StateMachineArn = stateMachineArn
-                });
+            var historyResult = await stepFunctions.ListExecutionsAsync(new ListExecutionsRequest
+            {
+                StateMachineArn = stateMachineArn
+            });
 
-                context.RunningExecutionsCount = historyResult.Executions.Where(e => e.Status.Value == "RUNNING").Count();
+            context.RunningExecutionsCount = historyResult.Executions.Count(e => e.Status.Value == "RUNNING");
 
             return context;
         }

@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
-using DotStep.Core;
 using Amazon.SQS;
 using Amazon.SQS.Model;
+using DotStep.Core;
 
 namespace DotStep.Common.Functions
 {
@@ -18,30 +18,33 @@ namespace DotStep.Common.Functions
     }
 
 
-
     public sealed class GetQueueStats<TContext> : LambdaFunction<TContext>
         where TContext : IQueueStatsContext
     {
-        IAmazonSQS sqs = new AmazonSQSClient();
+        readonly IAmazonSQS sqs = new AmazonSQSClient();
 
 
         public override async Task<TContext> Execute(TContext context)
         {
             {
-                context.JobQueueUrl = $"https://sqs.{context.RegionCode}.amazonaws.com/{context.AccountId}/{context.JobQueueName}";
+                context.JobQueueUrl =
+                    $"https://sqs.{context.RegionCode}.amazonaws.com/{context.AccountId}/{context.JobQueueName}";
 
                 var getQueueAttributesResult = await sqs.GetQueueAttributesAsync(new GetQueueAttributesRequest
                 {
                     QueueUrl = context.JobQueueUrl,
-                    AttributeNames = new List<string> {
-                    "ApproximateNumberOfMessages",
-                    "ApproximateNumberOfMessagesNotVisible" }
+                    AttributeNames = new List<string>
+                    {
+                        "ApproximateNumberOfMessages",
+                        "ApproximateNumberOfMessagesNotVisible"
+                    }
                 });
 
                 context.MessagesWaitingForProcessing = getQueueAttributesResult.ApproximateNumberOfMessages;
                 context.MessagesProcessing = getQueueAttributesResult.ApproximateNumberOfMessagesNotVisible;
                 context.JobProcessingCapacity = context.JobProcessingParallelSize - context.MessagesProcessing;
-                context.NoMessagesProcessingOrWaiting = context.MessagesWaitingForProcessing == 0 && context.MessagesProcessing == 0;
+                context.NoMessagesProcessingOrWaiting =
+                    context.MessagesWaitingForProcessing == 0 && context.MessagesProcessing == 0;
 
                 return context;
             }

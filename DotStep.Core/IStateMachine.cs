@@ -7,6 +7,7 @@ namespace DotStep.Core
     {
         Type StartAt { get; }
         IEnumerable<IState> States { get; }
+        IEnumerable<Type> StateTypes { get; }
         string Describe(string region, string accountId);
     }
 
