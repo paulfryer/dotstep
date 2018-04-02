@@ -523,6 +523,13 @@
                 "Service": "lambda.amazonaws.com"
               },
               "Action": "sts:AssumeRole"
+            },
+            {
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "cloudformation.amazonaws.com"
+              },
+              "Action": "sts:AssumeRole"
             }
           ]
         },
