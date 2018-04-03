@@ -34,7 +34,7 @@ namespace DotStep.Builder
             }
 
             var template = BuildCloudFormationTemplates(types);
-            File.WriteAllText("cf-template.json", template);
+            File.WriteAllText("template.json", template);
 
             var version = Environment.GetEnvironmentVariable("CODEBUILD_SOURCE_VERSION");
             Console.WriteLine("Version: " + version);
@@ -49,7 +49,7 @@ namespace DotStep.Builder
             {
                 BucketName = bucket,
                 Key = key,
-                FilePath = "cf-template.json",
+                FilePath = "template.json",
                 ContentType = "application/json",
                 ServerSideEncryptionMethod = ServerSideEncryptionMethod.AWSKMS,
                 ServerSideEncryptionKeyManagementServiceKeyId = codeBuildKmsKeyId

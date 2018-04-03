@@ -8,7 +8,7 @@
     <StartupObject />
     <AssemblyName>DotStep.Builder</AssemblyName>
     <RootNamespace>DotStep.Builder</RootNamespace>
-    <Version>2.1</Version>
+    <Version>2.1.2</Version>
     <PackageId>DotStep.Builder</PackageId>
     <Authors>Paul Fryer</Authors>
     <Company />
@@ -17,8 +17,8 @@
 </Description>
     <PackageProjectUrl>https://github.com/paulfryer/dotstep</PackageProjectUrl>
     <PackageTags>AWS StepFunctions DotNet</PackageTags>
-    <AssemblyVersion>2.1.0.0</AssemblyVersion>
-    <FileVersion>2.1.0.0</FileVersion>
+    <AssemblyVersion>2.1.2.0</AssemblyVersion>
+    <FileVersion>2.1.2.0</FileVersion>
   </PropertyGroup>
 
   <ItemGroup>
