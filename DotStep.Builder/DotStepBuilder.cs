@@ -6,6 +6,8 @@ using System.Reflection;
 using System.Text;
 using Amazon.IdentityManagement;
 using Amazon.IdentityManagement.Model;
+using Amazon.S3;
+using Amazon.S3.Model;
 using DotStep.Core;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
@@ -33,9 +35,28 @@ namespace DotStep.Builder
 
             var template = BuildCloudFormationTemplates(types);
             File.WriteAllText("cf-template.json", template);
+
+            var version = Environment.GetEnvironmentVariable("CODEBUILD_SOURCE_VERSION");
+            Console.WriteLine("Version: " + version);
+            var bucket = version.Split(':')[5].Split('/')[0];
+            var key = version.Split('/')[1] + "/template.json";
+            var codeBuildKmsKeyId = Environment.GetEnvironmentVariable("CODEBUILD_KMS_KEY_ID");
+            Console.WriteLine("Bucket: " + bucket);
+            Console.WriteLine("Key: " + key);
+
+            IAmazonS3 s3 = new AmazonS3Client();
+            s3.PutObjectAsync(new PutObjectRequest
+            {
+                BucketName = bucket,
+                Key = key,
+                FilePath = "cf-template.json",
+                ContentType = "application/json",
+                ServerSideEncryptionMethod = ServerSideEncryptionMethod.AWSKMS,
+                ServerSideEncryptionKeyManagementServiceKeyId = codeBuildKmsKeyId
+            }).Wait();
         }
 
-        public static string BuildCloudFormationConfiguration(string s3Bucket, string s3Key)
+        public static void BuildCloudFormationConfiguration(string s3Bucket, string s3Key)
         {
             var sb = new StringBuilder();
             sb.Append("{ \"Parameters\" : {");
@@ -49,7 +70,7 @@ namespace DotStep.Builder
 
             var formattedJson = JsonConvert.SerializeObject(configObj, Formatting.Indented);
 
-            return formattedJson;
+            File.WriteAllText("cf-config.json", formattedJson);
         }
 
         public static string BuildCloudFormationTemplates(List<Type> stateMachineTypes)

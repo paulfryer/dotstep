@@ -29,6 +29,7 @@
     <PackageReference Include="AWSSDK.IdentityManagement">
       <Version>3.3.6.1</Version>
     </PackageReference>
+    <PackageReference Include="AWSSDK.S3" Version="3.3.0" />
     <PackageReference Include="DotStep.Core" Version="2.1.0" />
     <PackageReference Include="Mono.Cecil">
       <Version>0.10.0-beta6</Version>
