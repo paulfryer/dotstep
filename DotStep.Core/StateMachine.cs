@@ -13,7 +13,7 @@ namespace DotStep.Core
         public Type StartAt
         {
             get
-            {
+            {       
                 return this.GetType().GetTypeInfo().BaseType.GetGenericArguments()[0];
             }
         }

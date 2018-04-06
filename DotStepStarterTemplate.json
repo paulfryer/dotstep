@@ -345,7 +345,6 @@
     "ArtifactBucket": {
       "Type": "AWS::S3::Bucket",
       "Properties": {
-        "AccessControl": "AuthenticatedRead",
         "BucketName": { "Fn::Sub": "codepipeline-${AWS::Region}-${AWS::StackName}-${AWS::AccountId}" }
       }
     },
