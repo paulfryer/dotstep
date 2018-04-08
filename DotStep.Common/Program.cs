@@ -6,6 +6,7 @@ using DotStep.Common.StateMachines;
 using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using DotStep.Common.Functions;
 
 namespace DotStep.Common
 {
@@ -14,7 +15,23 @@ namespace DotStep.Common
          
         static void Main(string[] args)
         {
-            TestCFQuickStart().Wait();
+            TestRequired().Wait();
+        }
+
+        public static async Task TestRequired()
+        {
+
+            var context = new CFQuickStartStateMachine.Context
+            {
+                //ProjectName = "dotstep-starter",
+                SourceCodeDirectory = "dotstep-starter-master",
+                ProjectZipLocation = "https://github.com/paulfryer/dotstep-starter/archive/master.zip"
+            };
+
+            var lambda = new ValidateMessage<CFQuickStartStateMachine.Context>();
+
+            context = await lambda.Execute(context);
+
         }
 
         public static async Task TestCFQuickStart() {

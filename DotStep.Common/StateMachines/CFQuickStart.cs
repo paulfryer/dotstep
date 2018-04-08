@@ -18,6 +18,7 @@ namespace DotStep.Common.StateMachines
 
         public class Context : IContext
         {
+            [Required]
             public string ProjectName { get; set; }
             public string ProjectZipLocation { get; set; }
             public string SourceCodeDirectory { get; set; }
@@ -87,7 +88,7 @@ namespace DotStep.Common.StateMachines
                 string json;
 
                 using (var netClient = new WebClient())
-                    json = netClient.DownloadString(new Uri("https://raw.githubusercontent.com/paulfryer/dotstep-starter/master/DotStepStarterTemplate.json"));
+                    json = netClient.DownloadString(new Uri("https://raw.githubusercontent.com/paulfryer/dotstep/master/DotStepStarterTemplate.json"));
 
                 var objectName = $"{context.ProjectName.ToLower()}-template.json";
                 var putObjectResult = await s3.PutObjectAsync(new PutObjectRequest
