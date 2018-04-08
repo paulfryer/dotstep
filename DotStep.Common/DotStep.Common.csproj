@@ -12,8 +12,8 @@
     <Company />
     <Product />
     <Description>Common Step Functions and Lambda Functions using the DotStep framework.</Description>
-    <Version>2.0</Version>
-    <AssemblyVersion>2.0.0.0</AssemblyVersion>
+    <Version>2.0.1</Version>
+    <AssemblyVersion>2.0.1.0</AssemblyVersion>
   </PropertyGroup>
 
   <ItemGroup>
