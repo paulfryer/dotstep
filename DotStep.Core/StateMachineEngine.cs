@@ -84,6 +84,19 @@ namespace DotStep.Core
                                     default: throw new NotImplementedException("Not implemented: " + choice.Operator);
                                 }
                                 break;
+                            case "ST":
+                                var stringComapirValue = Convert.ToString(compairValue);
+                                var stringValue = Convert.ToString(choice.Value);
+                                switch (choice.Operator)
+                                {
+                                    case Operator.StringEquals:
+                                        if (stringComapirValue == stringValue)
+                                            useNext = true;
+                                        break;
+                                    default: throw new NotImplementedException("Not implemented: " + choice.Operator);
+                                }
+
+                                break;
                             default: throw new NotImplementedException("Operator not supported: " + choice.Operator);
                         }
                         if (useNext)
