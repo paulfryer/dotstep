@@ -11,7 +11,6 @@ namespace DotStep.Core
         {
             var type = obj as Type;
             var attribute = type.GetCustomAttributes<TAttributeType>().SingleOrDefault();
-            //var attribute = obj.GetType().GetTypeInfo().GetCustomAttributes<TAttributeType>().SingleOrDefault();
             var value = attribute != null ? func(attribute) : defaultValue;
             return value;
         }
