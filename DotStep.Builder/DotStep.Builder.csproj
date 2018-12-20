@@ -8,7 +8,7 @@
     <StartupObject />
     <AssemblyName>DotStep.Builder</AssemblyName>
     <RootNamespace>DotStep.Builder</RootNamespace>
-    <Version>2.2.0</Version>
+    <Version>2.2.1</Version>
     <PackageId>DotStep.Builder</PackageId>
     <Authors>Paul Fryer</Authors>
     <Company />
