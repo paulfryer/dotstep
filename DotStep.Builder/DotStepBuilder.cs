@@ -18,8 +18,8 @@ namespace DotStep.Builder
 {
     public static class DotStepBuilder
     {
-        public const int DefaultTimeout = 30;
-        public const int DefaultMemory = 128;
+        public const int DefaultTimeout = 900;
+        public const int DefaultMemory = 512;
 
         public static void BuildTemplate(string publishLocation)
         {
@@ -132,7 +132,7 @@ namespace DotStep.Builder
 
                 var memory = stateType.GetAttributeValue((FunctionMemory a) => a.Memory, DefaultMemory);
                 var timeout = stateType.GetAttributeValue((FunctionTimeout a) => a.Timeout, DefaultTimeout);
-
+                
                 var actions = new List<string>();
 
                 foreach (var customAction in stateType.GetTypeInfo().GetCustomAttributes<Action>())
