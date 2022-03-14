@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "DotStep.Tests": {
+      "commandName": "Project",
+      "nativeDebugging": false
+    }
+  }
+}
