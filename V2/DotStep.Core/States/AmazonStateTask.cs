@@ -105,6 +105,7 @@ namespace DotStep.Core.States
                         transitionalFallbackState.Input = Input;
                         await transitionalFallbackState.Transition();
                     }
+                    else return;
                 }
 
 

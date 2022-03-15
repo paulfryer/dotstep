@@ -17,7 +17,7 @@ namespace DotStep.Reference.StateMachines
     {
         public string Bucket { get; set; }
         public string Collection { get; set; }
-        public string Key { get; }
+        public string TableName { get; set; }
     }
 
     public class IndexAllFaces : IStateMachine
@@ -75,12 +75,12 @@ namespace DotStep.Reference.StateMachines
                 new AmazonStateTask<IndexAllFacesRequest, AmazonDynamoDBClient, GetItemRequest, GetItemResponse>()
                     .SetParameters(i => new GetItemRequest
                     {
+                        TableName = i.TableName,
                         Key = new Dictionary<string, AttributeValue>
                         {
-                            { "Partition", new AttributeValue(i.Bucket) },
-                            { "SortKey", new AttributeValue(i.Key) }
+                            { "Partition", new AttributeValue(i.Bucket) }
                         }
-                    });
+                    }).AddErrorHandler(typeof(Amazon.DynamoDBv2.Model.ResourceNotFoundException), new ErrorHandler{FallbackState = new FailState()});
 
             var parallelTask = new ParallelState()
                 .AddState(getCollection)

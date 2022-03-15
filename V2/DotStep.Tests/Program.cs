@@ -21,13 +21,14 @@ namespace DotStep.Tests
             var generator = new StepFunctionGenerator<IndexAllFaces>();
 
 
-            generator.GenerateStateMachine();
+            //generator.GenerateStateMachine();
 
             var input = new
             {
                 Bucket = "crowdarise-web",
                 Collection = "mycolloection",
-                Prefix = "index"
+                Prefix = "index",
+                TableName = "sometable"
             };
 
 
