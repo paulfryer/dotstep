@@ -37,6 +37,10 @@ namespace DotStep.Reference.StateMachines
                         }
                     );
 
+            var waitState = new WaitState();
+
+    
+
             var getCollection =
                 new AmazonStateTask<IndexAllFacesRequest, AmazonRekognitionClient, DescribeCollectionRequest,
                         DescribeCollectionResponse>()
@@ -51,6 +55,7 @@ namespace DotStep.Reference.StateMachines
 
             var getObject = new AmazonStateTask<GetObjectRequest, AmazonS3Client, GetObjectRequest, GetObjectResponse>()
                 .SetParameters(i => i)
+                .Catch(typeof(Amazon.DynamoDBv2.Model.ResourceNotFoundException), createCollection)
                 .SetNextState(new SuccessState { Name = "Done" });
 
             var getAllObjects = new MapState<ListObjectsV2Response, S3Object, GetObjectRequest>(getObject)
@@ -82,14 +87,29 @@ namespace DotStep.Reference.StateMachines
                         }
                     }).AddErrorHandler(typeof(Amazon.DynamoDBv2.Model.ResourceNotFoundException), new ErrorHandler{FallbackState = new FailState()});
 
+
+            var passState = new PassState(getItem)
+            {
+
+            };
+
+            var choiceState = new ChoiceSate<IndexAllFacesRequest>(passState)
+              .AddRule(i => i.Bucket.StartsWith("node") ||
+                                                  i.TableName != "Something", waitState)
+              .AddRule(i => i.Collection == null, getItem);
+
             var parallelTask = new ParallelState()
                 .AddState(getCollection)
                 .AddState(listObjects)
                 .AddState(getItem)
                 .SetNextState(new SuccessState());
 
-            // return listObjects;
+             return choiceState;
             return parallelTask;
         }
+
+        
     }
-}
+
+
+}    

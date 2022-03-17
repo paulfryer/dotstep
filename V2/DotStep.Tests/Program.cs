@@ -18,7 +18,7 @@ namespace DotStep.Tests
             // var s3 = (AmazonS3Client)Activator.CreateInstance<AmazonS3Client>();
             // var x = s3.ListObjectsV2Async(request, CancellationToken.None).Result;
 
-            var generator = new StepFunctionGenerator<IndexAllFaces>();
+            //var generator = new StepFunctionGenerator<IndexAllFaces>();
 
 
             //generator.GenerateStateMachine();

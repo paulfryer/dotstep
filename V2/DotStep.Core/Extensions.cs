@@ -7,8 +7,35 @@ using DotStep.Core.States;
 
 namespace DotStep.Core
 {
+    public class CustomExpressionVisitor : ExpressionVisitor
+    {
+
+        public override Expression Visit(Expression node)
+        {
+            Console.WriteLine($"{node.NodeType} {node.Type} {node.CanReduce} {node.ToString()}");
+            return base.Visit(node);
+        }
+
+    }
+
+
     public static class Extensions
     {
+
+        public static ChoiceSate<TInput> AddRule<TInput>(this ChoiceSate<TInput> state,
+            Expression<Func<TInput, bool>> conditions, IState nextState)
+        {
+
+            var RuleMapping = conditions.Compile();
+
+            var visitor = new CustomExpressionVisitor();
+            visitor.Visit(conditions);
+
+
+
+
+            return state;
+        }
         public static MapState<TInput, TIterator, TRequest> SetMapping<TInput, TIterator, TRequest>(
             this MapState<TInput, TIterator, TRequest> state,
             Expression<Func<TIterator, TRequest>> mapping)
@@ -93,6 +120,21 @@ namespace DotStep.Core
             where TRequest : AmazonWebServiceRequest
         {
             task.ErrorHandlers.Add(errorType, errorHandler);
+            return task;
+        }
+
+        public static AmazonStateTask<TInput, TClient, TRequest, TResponse> 
+            Catch<TInput, TClient, TRequest, TResponse>(
+           this AmazonStateTask<TInput, TClient, TRequest, TResponse> task, Type exceptionType, IState fallbackState)
+          //  where TException : Exception
+           where TClient : AmazonServiceClient
+           where TResponse : AmazonWebServiceResponse
+           where TRequest : AmazonWebServiceRequest
+        {
+
+            //TODO: register the error fallback mapping.
+
+            // WOrk in progress.
             return task;
         }
     }

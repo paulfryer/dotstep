@@ -4,6 +4,9 @@ using System.Threading.Tasks;
 
 namespace DotStep.Core.States
 {
+
+
+
     public interface IMapState
     {
         public IState StartState { get; }

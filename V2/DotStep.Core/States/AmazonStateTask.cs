@@ -10,6 +10,11 @@ using Newtonsoft.Json;
 
 namespace DotStep.Core.States
 {
+
+    public enum ErrorType
+    {
+
+    }
     public interface IAmazonStateTask
     {
         public string Arn { get; }
