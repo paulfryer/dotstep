@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq.Expressions;
 using Amazon.DynamoDBv2;
 using Amazon.DynamoDBv2.Model;
 using Amazon.Rekognition;
@@ -22,8 +23,9 @@ namespace DotStep.Reference.StateMachines
 
     public class IndexAllFaces : IStateMachine
     {
-        public IState GetStartState()
+        public object GetStartState()
         {
+
             var createCollection =
                 new AmazonStateTask<IndexAllFacesRequest, AmazonRekognitionClient, CreateCollectionRequest,
                         CreateCollectionResponse>()
