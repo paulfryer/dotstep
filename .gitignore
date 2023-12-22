@@ -7,3 +7,5 @@
 /V2/DotStep.Reference/obj
 /V2/DotStep.Tests/bin/Debug/netcoreapp3.1
 /V2/DotStep.Tests/obj
+/V2/DotStep.Reference/bin/Debug/net6.0
+/V2/DotStep.Tests/bin/Debug/net6.0
