@@ -23,7 +23,7 @@ namespace DotStep.Reference.StateMachines
 
     public class IndexAllFaces : IStateMachine
     {
-        public object GetStartState()
+        public IState GetStartState()
         {
 
             var createCollection =
